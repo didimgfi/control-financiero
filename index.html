@@ -20,7 +20,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--bg:#F5F7FA;--card:#FFFFFF;--texto:#2D3748;--suave:#718096;--primario:#4F46E5;--acento:#6B5B95;--verde:#10B981;--rojo:#EF4444;--ambar:#F59E0B;--morado:#8B5CF6;--borde:#EEF2F7;--sombra:0 2px 12px rgba(30,41,59,.06)}
+:root{--bg:#F5F7FA;--card:#FFFFFF;--texto:#2D3748;--suave:#718096;--primario:#4F46E5;--acento:#6B5B95;--verde:#10B981;--rojo:#EF4444;--ambar:#F59E0B;--morado:#8B5CF6;--deuda:#E07A5F;--borde:#EEF2F7;--sombra:0 2px 12px rgba(30,41,59,.06)}
 html{font-size:16px;scroll-behavior:smooth}
 html,body{overscroll-behavior-y:contain}
 body{background:var(--bg);color:var(--texto);font-family:'Segoe UI',system-ui,-apple-system,Roboto,'Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
@@ -281,6 +281,107 @@ html.dark #resumenCatTabla tbody td,html.dark #resumenCatTabla tfoot td{backgrou
 .alerts-list li.near-end{background:#FEF3C7;border-color:#FCD34D;border-radius:12px;padding:10px 12px;border-bottom:none}
 .cat-dot{width:11px;height:11px;border-radius:50%;margin-top:4px;flex-shrink:0}
 
+/* ---- Deudas y préstamos con saldo ---- */
+.deuda-section{display:grid;grid-template-columns:1fr;gap:12px;background:#FDF3F0;border:1px solid #F5C6B8;border-radius:14px;overflow:hidden;max-height:0;opacity:0;padding:0 14px;border-width:0;transition:max-height .35s ease,opacity .35s ease,padding .35s ease,border-width .35s ease}
+.form-grid .deuda-section{grid-column:1 / -1}
+.deuda-section.open{max-height:900px;opacity:1;padding:14px;border-width:1px}
+.deuda-fields{display:grid;grid-template-columns:1fr;gap:12px;overflow:hidden;max-height:0;opacity:0;transition:max-height .35s ease,opacity .35s ease}
+.deuda-fields.open{max-height:740px;opacity:1}
+@media(min-width:768px){.deuda-fields{grid-template-columns:repeat(2,1fr)}}
+.deuda-toggle .toggle-label{color:#B4452A}
+.deuda-fields label.field{background:#fff}
+.deuda-badge{display:inline-block;background:#E2E8F0;color:#475569;border-radius:8px;padding:3px 9px;font-size:.75rem;font-weight:700;white-space:nowrap}
+.deuda-badge.activa{background:#FDE2DD;color:#B4452A;animation:fadeIn .3s ease}
+html.dark .deuda-badge{background:#334155;color:#E2E8F0}
+html.dark .deuda-badge.activa{background:#5C2A1B;color:#FFB39A}
+.deuda-line{font-size:.74rem;font-weight:600;color:var(--suave);margin-top:2px;white-space:nowrap}
+.deuda-line b{color:#B4452A}
+html.dark .deuda-line b{color:#FFB39A}
+.deuda-indicador{color:var(--rojo);font-weight:800}
+.kpi.deuda .valor{color:var(--deuda)}
+.kpi.deuda .icon{background:rgba(224,122,95,.14)}
+.kpi-contrib .sub.over{color:var(--rojo);font-weight:800}
+.kpi-contrib .sub.warn{color:var(--ambar);font-weight:800}
+.filter-check{display:flex;align-items:center;gap:6px;font-weight:600;font-size:.85rem;cursor:pointer;white-space:nowrap;user-select:none}
+.filter-check input{width:18px;height:18px;accent-color:var(--deuda)}
+.deuda-pct.bar{background:#FDE2DD}
+
+/* ---- Pestaña deudas: control de préstamos (colección "deudas") ---- */
+.deudas-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+@media(min-width:768px){.deudas-summary{grid-template-columns:repeat(4,1fr)}}
+.deudas-summary .card{margin:0}
+.deuda-mini{display:flex;flex-direction:column;gap:4px}
+.deuda-mini .lbl{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--suave)}
+.deuda-mini .val{font-size:clamp(1.05rem,3.5vw,1.4rem);font-weight:800;color:var(--texto)}
+.deuda-mini .val.deuda-delta{color:var(--ambar);font-weight:700;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.deudas-filtros{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.deudas-filtros .seg{display:inline-flex;border:1px solid var(--borde);border-radius:12px;overflow:hidden;background:var(--card)}
+.deudas-filtros .seg label{padding:9px 14px;font-size:.82rem;font-weight:700;color:var(--suave);cursor:pointer}
+.deudas-filtros .seg input{position:absolute;opacity:0;pointer-events:none}
+.deudas-filtros .seg input:checked + label{background:var(--primario);color:#fff}
+.deuda-card{background:var(--card);border-radius:16px;box-shadow:var(--sombra);border-left:6px solid var(--borde);padding:16px 16px 14px;margin-bottom:14px;position:relative;overflow:hidden;animation:fadeIn .3s ease}
+.deuda-card.risk-alta{border-left-color:var(--rojo)}
+.deuda-card.risk-media{border-left-color:var(--ambar)}
+.deuda-card.risk-baja{border-left-color:var(--verde)}
+.deuda-card.est-pagada{opacity:.72}
+.deuda-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.deuda-card-nombre{display:block;font-weight:800;font-size:1.02rem;color:var(--texto)}
+.deuda-card-entidad{display:block;font-size:.78rem;color:var(--suave);font-weight:600;margin-top:2px}
+.deuda-saldo{font-size:clamp(1.4rem,5.5vw,1.9rem);font-weight:800;color:var(--rojo);margin:10px 0 2px}
+.deuda-card.risk-baja .deuda-saldo{color:var(--verde)}
+.deuda-card.est-pagada .deuda-saldo{color:var(--suave)}
+.deuda-progress{height:8px;border-radius:999px;background:var(--borde);overflow:hidden;margin:10px 0 4px}
+.deuda-progress .fill{height:100%;border-radius:999px;background:var(--primario);transition:width .35s ease}
+.deuda-card.risk-alta .deuda-progress .fill{background:var(--rojo)}
+.deuda-card.risk-media .deuda-progress .fill{background:var(--ambar)}
+.deuda-card.risk-baja .deuda-progress .fill{background:var(--verde)}
+.deuda-card-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--suave);font-weight:600;margin-top:8px}
+.deuda-card-meta b{color:var(--texto)}
+.deuda-estado{display:inline-block;border-radius:999px;padding:3px 11px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;background:#E2E8F0;color:#475569}
+.deuda-estado.activa{background:#D1FAE5;color:#047857}
+.deuda-estado.pagada{background:#E2E8F0;color:#475569}
+.deuda-estado.refinanciada{background:#FEF3C7;color:#B45309}
+html.dark .deuda-estado.activa{background:#064E3B;color:#A7F3D0}
+html.dark .deuda-estado.pagada{background:#334155;color:#CBD5E1}
+html.dark .deuda-estado.refinanciada{background:#78350F;color:#FDE68A}
+.deuda-card-actions{display:flex;gap:8px;margin-top:12px}
+.deuda-card-actions button{flex:1;border:none;border-radius:12px;min-height:44px;font-size:.85rem;font-weight:700;cursor:pointer;transition:.15s ease;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.deuda-card-actions button:active{transform:scale(.98)}
+.btn-pago{background:linear-gradient(135deg,#E07A5F,#C95D3E);color:#fff}
+.btn-pago:disabled{opacity:.5;cursor:not-allowed}
+.btn-edit-deuda{background:#EEF2F7;color:var(--texto)}
+.btn-del-deuda{background:#FEE2E2;color:var(--rojo)}
+html.dark .btn-edit-deuda{background:#1a1a2e;color:#CBD5E1}
+html.dark .btn-del-deuda{background:#3F1D1D;color:#F87171}
+.deudas-empty{text-align:center;color:var(--suave);padding:36px 16px;font-style:italic}
+html.dark .deuda-card{background:#16213e}
+html.dark .deuda-card-nombre{color:#E2E8F0}
+html.dark .deuda-progress{background:#0f3460}
+html.dark .deudas-filtros .seg{background:#16213e;border-color:var(--borde)}
+html.dark .deudas-filtros .seg label{color:#CBD5E1}
+html.dark .deudas-filtros .seg input:checked + label{background:var(--acento)}
+.pago-overlay{position:fixed;inset:0;background:rgba(2,6,23,.55);z-index:960;display:none;align-items:center;justify-content:center;padding:16px}
+.pago-overlay.open{display:flex;animation:backdropIn .25s ease}
+.pago-card{position:relative;background:var(--card);border-radius:20px;max-width:460px;width:100%;padding:22px;box-shadow:0 18px 50px rgba(0,0,0,.28);overflow-y:auto;max-height:92vh}
+.pago-card h2{font-size:1.1rem;margin:0 0 4px;color:var(--texto)}
+.pago-card .pago-sub{font-size:.82rem;color:var(--suave);margin:0 0 14px}
+.pago-card label.field{display:block;margin-bottom:12px}
+.pago-card label.field span{display:block;font-size:.78rem;font-weight:700;color:var(--suave);margin-bottom:5px}
+.pago-card label.field input{display:block;width:100%;padding:11px 12px;border:1px solid var(--borde);border-radius:12px;font-size:.95rem;background:#fff;color:var(--texto)}
+.pago-x{position:absolute;top:12px;right:12px;background:var(--borde);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:.9rem;color:var(--texto)}
+.pago-acciones{display:flex;gap:10px;margin-top:14px}
+.pago-acciones button{flex:1;border:none;border-radius:12px;min-height:48px;font-size:.95rem;font-weight:800;cursor:pointer;transition:.15s ease}
+.pago-acciones button:active{transform:scale(.98)}
+#btnPagoCancelar{background:#EEF2F7;color:var(--texto)}
+#btnPagoGuardar{background:linear-gradient(135deg,#10B981,#059669);color:#fff}
+html.dark .pago-card{background:#16213e}
+html.dark .pago-card label.field input{background:#1a1a2e;border-color:var(--borde);color:var(--texto)}
+html.dark .pago-x{background:#1a1a2e;color:#CBD5E1}
+html.dark #btnPagoCancelar{background:#1a1a2e;color:#CBD5E1}
+@media(max-width:767px){
+  .deuda-card-actions button{font-size:.8rem;padding:0 4px}
+}
+
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:60;background:#fff;border-top:1px solid var(--borde);display:flex;height:64px;box-shadow:0 -4px 16px rgba(30,41,59,.08);padding-bottom:env(safe-area-inset-bottom)}
 .bottom-nav button{flex:1;min-width:48px;min-height:48px;border:none;background:transparent;padding:2px 4px 8px;font-size:.8rem;color:var(--suave);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:.15s ease;-webkit-user-select:none;user-select:none}
 .bottom-nav button .ico{font-size:1.35rem;line-height:1}
@@ -407,6 +508,10 @@ html.dark .btn-edit:hover{background:var(--borde)}
 html.dark .sync-indicator.ok{background:#064E3B;color:#A7F3D0;border-color:#065F46}
 html.dark .sync-indicator.syncing{background:#78350F;color:#FDE68A;border-color:#92400E}
 html.dark .cuotas-section{background:#1a1a2e;border-color:var(--borde)}
+html.dark .deuda-section{background:#25171A;border-color:#5C2A1B}
+html.dark .deuda-fields label.field{background:#1a1a2e}
+html.dark .deuda-toggle .toggle-label{color:#FFB39A}
+html.dark .filter-check input{accent-color:#E07A5F}
 html.dark .switch .slider{background:#475569}
 html.dark .switch input:checked + .slider{background:var(--acento)}
 html.dark .switch .slider::before{background:#E2E8F0}
@@ -438,11 +543,12 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
   #view-ingresos tbody td:nth-child(5),#view-gastos tbody td:nth-child(5){order:2;margin-left:auto;align-items:flex-end;font-size:1.05rem}
   #view-ingresos tbody td:nth-child(2),#view-gastos tbody td:nth-child(2){order:3;flex:1 1 100%;font-size:1.02rem;font-weight:600}
   #view-ingresos tbody td:nth-child(3),#view-ingresos tbody td:nth-child(4),#view-gastos tbody td:nth-child(3),#view-gastos tbody td:nth-child(4){order:4;flex:1 1 calc(50% - 5px)}
-  #view-ingresos tbody td:nth-child(6),#view-gastos tbody td:nth-child(8){order:7;flex:1 1 100%;justify-content:center;padding-top:10px;margin-top:8px;border-top:1px dashed var(--borde)}
-  #view-ingresos tbody td:nth-child(6) .row-actions,#view-gastos tbody td:nth-child(8) .row-actions{width:100%}
-  #view-ingresos tbody td:nth-child(6) .btn-del,#view-ingresos tbody td:nth-child(6) .btn-edit,#view-gastos tbody td:nth-child(8) .btn-del,#view-gastos tbody td:nth-child(8) .btn-edit{flex:1}
+  #view-ingresos tbody td:nth-child(6),#view-gastos tbody td:nth-child(9){order:8;flex:1 1 100%;justify-content:center;padding-top:10px;margin-top:8px;border-top:1px dashed var(--borde)}
+  #view-ingresos tbody td:nth-child(6) .row-actions,#view-gastos tbody td:nth-child(9) .row-actions{width:100%}
+  #view-ingresos tbody td:nth-child(6) .btn-del,#view-ingresos tbody td:nth-child(6) .btn-edit,#view-gastos tbody td:nth-child(9) .btn-del,#view-gastos tbody td:nth-child(9) .btn-edit{flex:1}
   #view-gastos tbody td:nth-child(6){order:5;flex:1 1 100%}
-  #view-gastos tbody td:nth-child(7){order:6;flex:1 1 100%}
+  #view-gastos tbody td:nth-child(7){order:6;flex:1 1 50%}
+  #view-gastos tbody td:nth-child(8){order:7;flex:1 1 100%}
   #view-ingresos tbody td.empty,#view-gastos tbody td.empty{flex:1 1 100%;order:9;flex-direction:row;align-items:center;justify-content:center;font-size:1rem;padding:18px !important}
   #view-ingresos tbody tr:has(>td.empty),#view-gastos tbody tr:has(>td.empty){border:none;box-shadow:none;background:transparent;padding:0;margin-bottom:6px}
 }
@@ -456,6 +562,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
     <button class="nav-tab" data-view="resumen">📊 Resumen</button>
     <button class="nav-tab" data-view="ingresos">💰 Ingresos</button>
     <button class="nav-tab" data-view="gastos">📝 Gastos</button>
+    <button class="nav-tab" data-view="deudas">💳 Deudas</button>
     <button class="nav-tab" data-view="presupuesto">🎯 Presupuesto</button>
   </nav>
   <div class="topbar-actions">
@@ -468,6 +575,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
   <span class="view-dot" data-dot="resumen"></span>
   <span class="view-dot" data-dot="ingresos"></span>
   <span class="view-dot" data-dot="gastos"></span>
+  <span class="view-dot" data-dot="deudas"></span>
   <span class="view-dot" data-dot="presupuesto"></span>
 </div>
 
@@ -554,6 +662,38 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         </div>
         <div class="sub" id="deudasSub">Sin gastos en Deudas</div>
       </div>
+    </div>
+
+    <div class="kpi-grid" id="deudasKpiGrid" hidden>
+      <div class="kpi deuda">
+        <span class="icon">💳</span>
+        <div class="label">Saldo total de deudas</div>
+        <div class="valor" id="kpiSaldoDeudas">₲ 0</div>
+        <div class="sub">Suma de saldos pendientes</div>
+      </div>
+      <div class="kpi deuda">
+        <span class="icon">📈</span>
+        <div class="label">Intereses estimados / mes</div>
+        <div class="valor" id="kpiInteresesMes">₲ 0</div>
+        <div class="sub">Según la tasa declarada</div>
+      </div>
+      <div class="kpi deuda">
+        <span class="icon">🔁</span>
+        <div class="label">Cuotas mensuales totales</div>
+        <div class="valor" id="kpiCuotasMes">₲ 0</div>
+        <div class="sub">Suma de cuotas mensuales</div>
+      </div>
+      <div class="kpi deuda">
+        <span class="icon">🎯</span>
+        <div class="label">% Ingreso comprometido</div>
+        <div class="valor" id="kpiPctComprometido">0%</div>
+        <div class="sub" id="kpiPctComprometidoSub">Sin deudas activas</div>
+      </div>
+    </div>
+
+    <div class="card" id="deudasChartCard" hidden>
+      <h2>📊 Deudas por entidad</h2>
+      <div class="chart-box tall"><canvas id="chartDebudasHor"></canvas></div>
     </div>
 
     <div class="card" id="gastosFijosCard">
@@ -713,7 +853,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         <label class="field"><span>🧮 Categoría</span>
           <select id="gCategoria">
             <option>Vivienda</option><option>Alimentación</option><option>Transporte</option>
-            <option>Servicios</option><option>Salud</option><option>Deudas</option>
+            <option>Servicios</option><option>Salud</option><option value="Deudas">Deudas 💳</option><option value="Préstamos">Préstamos</option>
             <option>Ocio</option><option>Educación</option><option>Ropa</option>
             <option>Ahorro</option><option>Otros</option>
           </select>
@@ -753,6 +893,49 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
             </label>
           </div>
         </div>
+        <div class="deuda-section" id="gDeudaPanel">
+          <div class="toggle-row deuda-toggle">
+            <span class="toggle-label">💳 ¿Es un préstamo o deuda con saldo pendiente?</span>
+            <label class="switch" title="¿Deuda con saldo?">
+              <input type="checkbox" id="gEsDeuda">
+              <span class="slider"></span>
+            </label>
+            <span class="switch-value" id="gEsDeudaTxt">No</span>
+          </div>
+          <div class="deuda-fields" id="gDeudaFields">
+            <label class="field deuda-field"><span>💵 Saldo actual/pendiente (₲)</span>
+              <input type="number" id="gSaldoPendiente" min="0" step="1" inputmode="numeric" placeholder="Ej: 1.000.000">
+            </label>
+            <label class="field deuda-field"><span>📈 Tasa de interés anual (%)</span>
+              <input type="number" id="gTasaInteres" min="0" step="0.01" inputmode="decimal" placeholder="Ej: 18.50">
+            </label>
+            <label class="field deuda-field"><span>🏷️ Tipo de tasa</span>
+              <select id="gTipoTasa">
+                <option value="efectiva-anual">Efectiva Anual</option>
+                <option value="nominal-anual">Nominal Anual</option>
+                <option value="mensual">Mensual</option>
+              </select>
+            </label>
+            <label class="field deuda-field"><span>🔁 Cuota mensual (₲)</span>
+              <input type="number" id="gCuotaMensual" min="0" step="1" inputmode="numeric" placeholder="Ej: 250.000">
+            </label>
+            <label class="field deuda-field"><span>🏦 Entidad/Acreedor</span>
+              <input type="text" id="gEntidadAcreedor" maxlength="80" placeholder="Ej: Banco Itaú">
+            </label>
+            <label class="field deuda-field"><span>📅 Día de vencimiento de la cuota</span>
+              <input type="number" id="gDiaVencimiento" min="1" max="31" step="1" inputmode="numeric" placeholder="Ej: 10">
+            </label>
+            <label class="field deuda-field"><span>🧮 Cuotas totales</span>
+              <input type="number" id="gDeudaCuotasTotales" min="1" step="1" inputmode="numeric" placeholder="Ej: 12">
+            </label>
+            <label class="field deuda-field"><span>✅ Cuotas pagadas</span>
+              <input type="number" id="gDeudaCuotasPagadas" min="0" step="1" inputmode="numeric" placeholder="Ej: 3">
+            </label>
+            <label class="field deuda-field"><span>⏳ Cuotas faltantes</span>
+              <div class="faltantes-val" id="gDeudaCuotasFaltantes">—</div>
+            </label>
+          </div>
+        </div>
         <label class="field"><span>📝 Comentarios</span>
           <textarea id="gComentarios" placeholder="Opcional" maxlength="200"></textarea>
         </label>
@@ -785,6 +968,9 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
             <option value="sin">Sin cuotas</option>
           </select>
         </label>
+        <label class="filter-check">Solo deudas activas
+          <input type="checkbox" id="gastosSoloDeudas">
+        </label>
         <label>Mes
           <select id="gastosMes"></select>
         </label>
@@ -801,6 +987,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
               <th>Tipo</th>
               <th>Categoría</th>
               <th>Monto</th>
+              <th>Deuda</th>
               <th>Método</th>
               <th>Comentarios</th>
               <th>Acción</th>
@@ -814,6 +1001,86 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         <span class="chip">📈 Promedio diario: <b id="promedioDiario">₲ 0</b></span>
         <span class="chip">🔍 Total del filtro: <b id="totalFiltroGastos">₲ 0</b></span>
       </div>
+    </div>
+  </section>
+
+  <!-- ===================== DEUDAS ===================== -->
+  <section class="view" id="view-deudas">
+    <div class="view-header deudas">
+      <h1>💳 Deudas</h1>
+      <p>Controla préstamos y deudas con saldo pendiente</p>
+    </div>
+
+    <div class="deudas-summary">
+      <div class="card">
+        <div class="deuda-mini"><span class="lbl">💳 Saldo total en deudas</span><span class="val" id="deudasResumenSaldo">₲ 0</span></div>
+      </div>
+      <div class="card">
+        <div class="deuda-mini"><span class="lbl">🔁 Cuotas mensuales comprometidas</span><span class="val" id="deudasResumenCuotas">₲ 0</span></div>
+      </div>
+      <div class="card">
+        <div class="deuda-mini"><span class="lbl">📅 Próximo vencimiento</span><span class="val deuda-delta" id="deudasResumenVencimiento">Sin deudas activas</span></div>
+      </div>
+      <div class="card">
+        <div class="deuda-mini"><span class="lbl">📈 Intereses estimados este mes</span><span class="val" id="deudasResumenIntereses">₲ 0</span></div>
+      </div>
+    </div>
+
+    <div class="deudas-filtros">
+      <div class="seg">
+        <input type="radio" name="deudasFiltro" id="filtroDeudasActivas">
+        <label for="filtroDeudasActivas">🟢 Activas</label>
+        <input type="radio" name="deudasFiltro" id="filtroDeudasPagadas">
+        <label for="filtroDeudasPagadas">⚪ Pagadas</label>
+        <input type="radio" name="deudasFiltro" id="filtroDeudasTodas" checked>
+        <label for="filtroDeudasTodas">📋 Todas</label>
+      </div>
+    </div>
+
+    <form id="dForm" class="card" novalidate>
+      <h2>➕ Nueva deuda</h2>
+      <div class="form-grid">
+        <label class="field"><span>🏷️ Nombre del préstamo</span>
+          <input type="text" id="dNombre" placeholder="Ej: Tarjeta Visa" required maxlength="80">
+        </label>
+        <label class="field"><span>🏦 Entidad/Acreedor</span>
+          <input type="text" id="dEntidad" placeholder="Ej: Banco Itaú" maxlength="80">
+        </label>
+        <label class="field"><span>💵 Saldo inicial (₲)</span>
+          <input type="number" id="dSaldoInicial" min="0" step="1" inputmode="numeric" placeholder="Ej: 5.000.000" required>
+        </label>
+        <label class="field"><span>📈 Tasa de interés (%)</span>
+          <input type="number" id="dTasaInteres" min="0" step="0.01" inputmode="decimal" placeholder="Ej: 18.50">
+        </label>
+        <label class="field"><span>🏷️ Tipo de tasa</span>
+          <select id="dTipoTasa">
+            <option value="efectiva-anual">Efectiva Anual</option>
+            <option value="nominal-anual">Nominal Anual</option>
+            <option value="mensual">Mensual</option>
+          </select>
+        </label>
+        <label class="field"><span>🔁 Cuota mensual (₲)</span>
+          <input type="number" id="dCuotaMensual" min="0" step="1" inputmode="numeric" placeholder="Ej: 250.000">
+        </label>
+        <label class="field"><span>🧮 Cuotas totales</span>
+          <input type="number" id="dCuotasTotales" min="1" step="1" inputmode="numeric" placeholder="Ej: 24">
+        </label>
+        <label class="field"><span>📅 Día de vencimiento</span>
+          <input type="number" id="dDiaVencimiento" min="1" max="31" step="1" inputmode="numeric" placeholder="Ej: 10">
+        </label>
+        <label class="field"><span>📆 Fecha de inicio</span>
+          <input type="date" id="dFechaInicio">
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-expense" id="btnSubmitDeuda">➕ Agregar Deuda</button>
+        <button type="button" class="btn btn-cancel" id="btnCancelDeuda" hidden>✕ Cancelar</button>
+      </div>
+    </form>
+
+    <div class="card">
+      <h2>💳 Tus deudas</h2>
+      <div id="deudasCardsList"></div>
     </div>
   </section>
 
@@ -851,6 +1118,30 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         </table>
       </div>
     </div>
+
+    <div class="card">
+      <h2>💳 Deudas Activas</h2>
+      <p style="font-size:.85rem;color:var(--suave);margin-bottom:14px">Deudas y préstamos registrados con saldo pendiente.</p>
+      <div class="table-wrap" style="max-height:420px">
+        <table>
+          <thead>
+            <tr>
+              <th>Entidad</th>
+              <th>Saldo Pendiente</th>
+              <th>Tasa</th>
+              <th>Cuota Mensual</th>
+              <th>Cuotas Faltantes</th>
+              <th>Próximo vencimiento</th>
+            </tr>
+          </thead>
+          <tbody id="deudasActivasTbody"></tbody>
+        </table>
+      </div>
+      <div class="totals-bar">
+        <span class="chip">💳 Total saldos: <b id="deudasActivasTotalSaldo">₲ 0</b></span>
+        <span class="chip">🔁 Total cuotas mensuales: <b id="deudasActivasTotalCuotas">₲ 0</b></span>
+      </div>
+    </div>
   </section>
 
 </main>
@@ -859,6 +1150,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
   <button data-view="resumen"><span class="ico">📊</span>Resumen</button>
   <button data-view="ingresos"><span class="ico">💰</span>Ingresos</button>
   <button data-view="gastos"><span class="ico">📝</span>Gastos</button>
+  <button data-view="deudas"><span class="ico">💳</span>Deudas</button>
   <button data-view="presupuesto"><span class="ico">🎯</span>Presupuesto</button>
 </nav>
 
@@ -891,15 +1183,34 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
   </div>
 </div>
 
+<div class="pago-overlay" id="pagoModal">
+  <div class="pago-card">
+    <button type="button" class="pago-x" id="pagoCerrar" aria-label="Cerrar">✕</button>
+    <h2>💰 Registrar pago</h2>
+    <p class="pago-sub">Se creará un gasto en "Deudas" y se actualizará la deuda.</p>
+    <input type="hidden" id="pagoDeudaId">
+    <label class="field"><span>💳 Deuda</span><input type="text" id="pagoDeudaTxt" readonly></label>
+    <label class="field"><span>📅 Fecha</span><input type="date" id="pagoFecha"></label>
+    <label class="field"><span>💰 Monto (₲)</span><input type="number" id="pagoMonto" min="0" step="1" inputmode="numeric" placeholder="Ej: 250.000"></label>
+    <label class="field"><span>📝 Comentarios</span><input type="text" id="pagoComentarios" maxlength="200" placeholder="Opcional"></label>
+    <div class="pago-acciones">
+      <button type="button" id="btnPagoCancelar">Cancelar</button>
+      <button type="button" id="btnPagoGuardar">💾 Guardar pago</button>
+    </div>
+  </div>
+</div>
+
 <div id="toastContainer"></div>
 
 <script>
-const CATEGORIAS_GASTOS = ['Vivienda','Alimentación','Transporte','Servicios','Salud','Deudas','Ocio','Educación','Ropa','Ahorro','Otros'];
+const CATEGORIAS_GASTOS = ['Vivienda','Alimentación','Transporte','Servicios','Salud','Deudas','Préstamos','Ocio','Educación','Ropa','Ahorro','Otros'];
+const CATEGORIAS_DEUDA = ['Deudas','Préstamos'];
+function esCategoriaDeuda(c){ return CATEGORIAS_DEUDA.indexOf(c) > -1; }
 const CATEGORIAS_INGRESOS = ['Salario','Freelance','Otros ingresos'];
 const PERSONAS = ['Yo','Mi pareja'];
 const METODOS = ['Efectivo','Débito','Crédito','Transferencia'];
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const PALETA = ['#6366F1','#10B981','#F59E0B','#EF4444','#3B82F6','#8B5CF6','#EC4899','#14B8A6','#F97316','#84CC16','#64748B'];
+const PALETA = ['#6366F1','#10B981','#F59E0B','#EF4444','#3B82F6','#8B5CF6','#EC4899','#14B8A6','#F97316','#84CC16','#64748B','#E07A5F'];
 const FIREBASE_CONFIG_KEY = 'firebase_config';
 const NOMBRE_USUARIO_KEY = 'nombre_usuario';
 
@@ -966,6 +1277,7 @@ let offlineNotified = false;
 let unMaster = null;
 let unIng = null;
 let unGas = null;
+let unDeudas = null;
 let listaIngresos = null;
 let listaGastos = null;
 let presupuestoDocIds = {};
@@ -977,6 +1289,7 @@ CATEGORIAS_GASTOS.forEach(c => { DEFAULT_PRESUPUESTO[c] = 0; });
 
 let ingresos = [];
 let gastos = [];
+let deudas = [];
 let presupuesto = Object.assign({}, DEFAULT_PRESUPUESTO);
 
 let nombreUsuario = '';
@@ -1005,6 +1318,7 @@ function setSync(state){
 function renderAll(){
   renderIngresos();
   renderGastos();
+  renderDeudas();
   renderPresupuesto();
   renderResumen();
   fillYearSelects();
@@ -1022,6 +1336,7 @@ function tearDownFirestore(){
   if(unMaster){ unMaster(); unMaster = null; }
   if(unIng){ unIng(); unIng = null; }
   if(unGas){ unGas(); unGas = null; }
+  if(unDeudas){ unDeudas(); unDeudas = null; }
   if(typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length){
     try { firebase.app().delete(); } catch(e){}
   }
@@ -1083,6 +1398,12 @@ function watchFirestore(){
 
   /* Tablas filtradas con queries de Firestore (where + orderBy). */
   reiniciarQueriesFiltradas();
+
+  /* Colección "deudas": préstamos y deudas con saldo. */
+  unDeudas = db.collection('deudas').onSnapshot(snap => {
+    deudas = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    renderDeudas();
+  }, snapError);
 }
 
 function queryFiltrada(tipo){
@@ -1181,7 +1502,14 @@ function addGastoRec(rec){
     cuotasTotales: tot,
     cuotasPagadas: pag,
     cuotasFaltantes: tiene ? Math.max(tot - pag, 0) : null,
-    fechaInicioCuotas: tiene ? (rec.fechaInicioCuotas || null) : null
+    fechaInicioCuotas: tiene ? (rec.fechaInicioCuotas || null) : null,
+    esDeudaConSaldo: rec.esDeudaConSaldo === true,
+    saldoPendiente: rec.esDeudaConSaldo ? (Number(rec.saldoPendiente) || 0) : null,
+    tasaInteres: rec.esDeudaConSaldo ? (Number(rec.tasaInteres) || 0) : null,
+    tipoTasa: rec.esDeudaConSaldo ? (rec.tipoTasa || 'efectiva-anual') : null,
+    cuotaMensual: rec.esDeudaConSaldo ? (Number(rec.cuotaMensual) || 0) : null,
+    entidadAcreedor: rec.esDeudaConSaldo ? (rec.entidadAcreedor || null) : null,
+    diaVencimiento: rec.esDeudaConSaldo ? (Number(rec.diaVencimiento) || null) : null
   });
 }
 
@@ -1220,6 +1548,7 @@ function showNameIfNeeded(){
 let chartDoughnut = null;
 let chartBarras = null;
 let chartLine = null;
+let chartDebudas = null;
 let lastAdded = null;
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
@@ -1267,7 +1596,7 @@ function vibrar(p){
   try { if(navigator.vibrate && typeof navigator.vibrate === 'function') navigator.vibrate(p); } catch(e){}
 }
 
-const VIEWS = ['resumen','ingresos','gastos','presupuesto'];
+const VIEWS = ['resumen','ingresos','gastos','deudas','presupuesto'];
 let curView = 'resumen';
 
 function updateIndicator(v){
@@ -1504,6 +1833,37 @@ function tipoInfo(t){
   return map[t];
 }
 
+function deudaActivasLista(){
+  return (gastos || []).filter(g => g.esDeudaConSaldo === true);
+}
+
+function formatTasa(g){
+  if(!(g && g.esDeudaConSaldo)) return '';
+  const t = Number(g.tasaInteres) || 0;
+  if(!(t > 0)) return '';
+  return t + '% ' + (g.tipoTasa === 'mensual' ? 'mensual' : 'anual');
+}
+
+function deudaInfo(g){
+  if(!g.esDeudaConSaldo){
+    return esCategoriaDeuda(g.categoria) ? '<span class="deuda-badge">Pago único</span>' : '<span class="deuda-badge">—</span>';
+  }
+  const saldo = Number(g.saldoPendiente) || 0;
+  const tasa = formatTasa(g);
+  const cuota = Number(g.cuotaMensual) || 0;
+  return '<span class="deuda-indicador">🔴</span> <span class="deuda-badge activa">Deuda activa</span>' +
+    '<div class="deuda-line"><b>Saldo: ' + formatPYG(saldo) + '</b></div>' +
+    (tasa ? '<div class="deuda-line">Tasa: ' + esc(tasa) + '</div>' : '') +
+    (cuota > 0 ? '<div class="deuda-line">Cuota: ' + formatPYG(cuota) + '/mes</div>' : '');
+}
+
+function interesesMensuales(g){
+  const saldo = Number(g.saldoPendiente) || 0;
+  const tasa = Number(g.tasaInteres) || 0;
+  if(saldo <= 0 || tasa <= 0) return 0;
+  return g.tipoTasa === 'mensual' ? (saldo * tasa / 100) : (saldo * tasa / 100 / 12);
+}
+
 document.getElementById('formGasto').addEventListener('submit', e => {
   e.preventDefault();
   const form = e.target;
@@ -1518,6 +1878,18 @@ document.getElementById('formGasto').addEventListener('submit', e => {
     if(!(totCuotas >= 1)){ toast('Ingresa el total de cuotas (mínimo 1)', 'error'); const elF = document.getElementById('gCuotasTotales'); if(elF) elF.focus(); return; }
     if(!(pagCuotas >= 0) || pagCuotas > totCuotas){ toast('Las cuotas pagadas no pueden superar el total', 'error'); return; }
   }
+  const esDeudaConSaldo = esCategoriaDeuda(document.getElementById('gCategoria').value) && document.getElementById('gEsDeuda').checked;
+  const saldoPend = Number(document.getElementById('gSaldoPendiente').value) || 0;
+  const diaVen = parseInt(document.getElementById('gDiaVencimiento').value, 10);
+  if(esDeudaConSaldo && !(saldoPend > 0)){
+    toast('Ingresa el saldo pendiente (obligatorio en deudas con saldo)', 'error');
+    const elS = document.getElementById('gSaldoPendiente'); if(elS) elS.focus();
+    return;
+  }
+  if(esDeudaConSaldo && diaVen && (diaVen < 1 || diaVen > 31)){
+    toast('El día de vencimiento debe estar entre 1 y 31', 'error');
+    return;
+  }
   const datos = {
     fecha: document.getElementById('gFecha').value,
     descripcion: document.getElementById('gDescripcion').value.trim(),
@@ -1531,7 +1903,14 @@ document.getElementById('formGasto').addEventListener('submit', e => {
     cuotasTotales: tieneCuotas ? totCuotas : null,
     cuotasPagadas: tieneCuotas ? pagCuotas : null,
     cuotasFaltantes: tieneCuotas ? Math.max(totCuotas - pagCuotas, 0) : null,
-    fechaInicioCuotas: tieneCuotas ? (document.getElementById('gFechaInicioCuotas').value || null) : null
+    fechaInicioCuotas: tieneCuotas ? (document.getElementById('gFechaInicioCuotas').value || null) : null,
+    esDeudaConSaldo: esDeudaConSaldo,
+    saldoPendiente: esDeudaConSaldo ? saldoPend : null,
+    tasaInteres: esDeudaConSaldo ? (Number(document.getElementById('gTasaInteres').value) || 0) : null,
+    tipoTasa: esDeudaConSaldo ? (document.getElementById('gTipoTasa').value || 'efectiva-anual') : null,
+    cuotaMensual: esDeudaConSaldo ? (Number(document.getElementById('gCuotaMensual').value) || 0) : null,
+    entidadAcreedor: esDeudaConSaldo ? (document.getElementById('gEntidadAcreedor').value.trim() || null) : null,
+    diaVencimiento: esDeudaConSaldo ? (diaVen || null) : null
   };
   if(editandoGasto){
     updateRecord(editandoGasto, datos).then(() => {
@@ -1549,6 +1928,7 @@ document.getElementById('formGasto').addEventListener('submit', e => {
     form.reset();
     document.getElementById('gFecha').value = hoy();
     aplicarVisibilidadCuotasGasto();
+    aplicarVisibilidadDeudaGasto();
     renderAll();
     const presCat = Number(presupuesto[nuevo.categoria] || 0);
     if(presCat > 0){
@@ -1567,16 +1947,28 @@ function cancelarEdicionGasto(){
   document.getElementById('formGasto').reset();
   document.getElementById('gFecha').value = hoy();
   aplicarVisibilidadCuotasGasto();
+  aplicarVisibilidadDeudaGasto();
 }
 
 document.getElementById('btnCancelGasto').addEventListener('click', cancelarEdicionGasto);
 
 document.getElementById('gTipo').addEventListener('change', aplicarVisibilidadCuotasGasto);
 document.getElementById('gTieneCuotas').addEventListener('change', aplicarVisibilidadCuotasGasto);
+document.getElementById('gCategoria').addEventListener('change', aplicarVisibilidadDeudaGasto);
+document.getElementById('gEsDeuda').addEventListener('change', aplicarVisibilidadDeudaGasto);
 ['gCuotasTotales','gCuotasPagadas'].forEach(id => {
   const el = document.getElementById(id);
   if(el){ el.addEventListener('input', recalcFaltantesCuotas); el.addEventListener('change', recalcFaltantesCuotas); }
 });
+['gCuotasTotales','gCuotasPagadas'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el){ el.addEventListener('input', syncCuotasEspejo); el.addEventListener('change', syncCuotasEspejo); }
+});
+['gDeudaCuotasTotales','gDeudaCuotasPagadas'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el){ el.addEventListener('input', syncCuotasEspejo); el.addEventListener('change', syncCuotasEspejo); }
+});
+document.getElementById('gastosSoloDeudas').addEventListener('change', renderGastos);
 document.getElementById('gastosTipo').addEventListener('change', () => {
   const wrap = document.getElementById('gastosCuotasWrap');
   const t = document.getElementById('gastosTipo').value;
@@ -1606,6 +1998,43 @@ function recalcFaltantesCuotas(){
   if(el) el.textContent = Math.max(tot - pag, 0) + ' cuota' + (Math.max(tot - pag, 0) === 1 ? '' : 's');
 }
 
+function aplicarVisibilidadDeudaGasto(){
+  const panel = document.getElementById('gDeudaPanel');
+  const esCat = esCategoriaDeuda((document.getElementById('gCategoria') || {}).value);
+  const esDeuda = !!((document.getElementById('gEsDeuda') || {}).checked);
+  const fields = document.getElementById('gDeudaFields');
+  const txt = document.getElementById('gEsDeudaTxt');
+  if(panel) panel.classList.toggle('open', esCat);
+  if(fields) fields.classList.toggle('open', esCat && esDeuda);
+  if(txt) txt.textContent = esDeuda ? 'Sí' : 'No';
+  recalcFaltantesDeuda();
+  recalcFaltantesCuotas();
+}
+
+function recalcFaltantesDeuda(){
+  const tot = Number((document.getElementById('gDeudaCuotasTotales') || {}).value) || 0;
+  const pag = Number((document.getElementById('gDeudaCuotasPagadas') || {}).value) || 0;
+  const el = document.getElementById('gDeudaCuotasFaltantes');
+  if(el) el.textContent = Math.max(tot - pag, 0) + ' cuota' + (Math.max(tot - pag, 0) === 1 ? '' : 's');
+}
+
+function syncCuotasEspejo(){
+  const cTot = document.getElementById('gCuotasTotales');
+  const cPag = document.getElementById('gCuotasPagadas');
+  const dTot = document.getElementById('gDeudaCuotasTotales');
+  const dPag = document.getElementById('gDeudaCuotasPagadas');
+  if(cTot && dTot){
+    if(dTot.value !== '') cTot.value = dTot.value;
+    else if(cTot.value !== '') dTot.value = cTot.value;
+  }
+  if(cPag && dPag){
+    if(dPag.value !== '') cPag.value = dPag.value;
+    else if(cPag.value !== '') dPag.value = cPag.value;
+  }
+  recalcFaltantesCuotas();
+  recalcFaltantesDeuda();
+}
+
 function iniciarEdicionGasto(g){
   editandoGasto = g.id;
   document.getElementById('gFecha').value = g.fecha || '';
@@ -1618,8 +2047,18 @@ function iniciarEdicionGasto(g){
   document.getElementById('gCuotasTotales').value = g.cuotasTotales != null ? g.cuotasTotales : '';
   document.getElementById('gCuotasPagadas').value = g.cuotasPagadas != null ? g.cuotasPagadas : '';
   document.getElementById('gFechaInicioCuotas').value = g.fechaInicioCuotas || '';
+  document.getElementById('gEsDeuda').checked = !!g.esDeudaConSaldo;
+  document.getElementById('gSaldoPendiente').value = g.esDeudaConSaldo && g.saldoPendiente != null ? g.saldoPendiente : '';
+  document.getElementById('gTasaInteres').value = g.esDeudaConSaldo && g.tasaInteres != null ? g.tasaInteres : '';
+  document.getElementById('gTipoTasa').value = (['efectiva-anual','nominal-anual','mensual'].indexOf(g.tipoTasa) > -1) ? g.tipoTasa : 'efectiva-anual';
+  document.getElementById('gCuotaMensual').value = g.esDeudaConSaldo && g.cuotaMensual != null ? g.cuotaMensual : '';
+  document.getElementById('gEntidadAcreedor').value = g.entidadAcreedor || '';
+  document.getElementById('gDiaVencimiento').value = g.esDeudaConSaldo && g.diaVencimiento != null ? g.diaVencimiento : '';
+  document.getElementById('gDeudaCuotasTotales').value = g.cuotasTotales != null ? g.cuotasTotales : '';
+  document.getElementById('gDeudaCuotasPagadas').value = g.cuotasPagadas != null ? g.cuotasPagadas : '';
   document.getElementById('gComentarios').value = g.comentarios || '';
   aplicarVisibilidadCuotasGasto();
+  aplicarVisibilidadDeudaGasto();
   document.getElementById('btnSubmitGasto').textContent = '💾 Guardar cambios';
   document.getElementById('btnCancelGasto').hidden = false;
   goView('gastos');
@@ -1630,10 +2069,12 @@ function filterGastos(){
   const cat = document.getElementById('gastosCat').value;
   const m = document.getElementById('gastosMes').value;
   const a = document.getElementById('gastosAño').value;
+  const soloDeudas = !!((document.getElementById('gastosSoloDeudas') || {}).checked);
   return gastos.filter(g => {
     const f = g.fecha || '';
     const mm = Number(f.slice(5,7));
     const aa = f.slice(0,4);
+    if(soloDeudas && g.esDeudaConSaldo !== true) return false;
     if(cat && g.categoria !== cat) return false;
     if(a && aa !== a) return false;
     if(m && mm !== Number(m)) return false;
@@ -1644,7 +2085,11 @@ function filterGastos(){
 function aplicarFiltroTipo(gastosLista){
   const t = (document.getElementById('gastosTipo') || {}).value;
   const c = (document.getElementById('gastosCuotas') || {}).value;
+  const soloDeudas = !!((document.getElementById('gastosSoloDeudas') || {}).checked);
   let out = gastosLista;
+  if(soloDeudas){
+    out = out.filter(g => g.esDeudaConSaldo === true);
+  }
   if(t){
     out = out.filter(g => (g.tipoGasto || 'unico') === t);
     if(c){
@@ -1680,7 +2125,7 @@ function renderGastos(){
   const tbody = document.getElementById('gastosTbody');
   const lista = aplicarFiltroTipo(mostrarListaOFilter('gasto')).sort((x,y) => (y.fecha||'').localeCompare(x.fecha||'') || y.id.localeCompare(x.id));
   if(!lista.length){
-    tbody.innerHTML = '<tr><td colspan="8" class="empty">📭 Sin gastos registrados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">📭 Sin gastos registrados</td></tr>';
   } else {
     tbody.innerHTML = lista.map(g => {
       const ci = cuotaInfo(g);
@@ -1691,6 +2136,7 @@ function renderGastos(){
         <td data-label="Tipo">${tipoBadge(g)} ${ci.badges}</td>
         <td data-label="Categoría">${catBadge(g.categoria)}</td>
         <td data-label="Monto" class="monto gas">${formatPYG(g.monto)}${ci.progress}</td>
+        <td data-label="Deuda">${deudaInfo(g)}</td>
         <td data-label="Método de pago">${metodoTag(g.metodoPago)}</td>
         <td data-label="Comentarios" class="row-com">${esc(g.comentarios || '—')}</td>
         <td data-label="" class="row-action"><span class="row-actions">
@@ -1728,6 +2174,286 @@ document.getElementById('gastosTbody').addEventListener('click', e => {
   }, () => {
     renderGastos();
   });
+});
+
+/* ------------------ DEUDAS: CONTROL DE PRÉSTAMOS (colección "deudas") ------------------ */
+
+const ESTADOS_DEUDA = ['activa','pagada','refinanciada'];
+let editandoDeuda = null;
+let pagoDeudaSel = null;
+
+function formatTasaDeuda(d){
+  const t = Number(d.tasaInteres) || 0;
+  if(!(t > 0)) return '';
+  return t + '% ' + (d.tipoTasa === 'mensual' ? 'mensual' : 'anual');
+}
+
+function interesesMensualesDeuda(d){
+  const saldo = Number(d.saldoActual) || 0;
+  const tasa = Number(d.tasaInteres) || 0;
+  if(saldo <= 0 || tasa <= 0) return 0;
+  return d.tipoTasa === 'mensual' ? (saldo * tasa / 100) : (saldo * tasa / 100 / 12);
+}
+
+function deudasActivasCollection(){
+  return (deudas || []).filter(d => d.estado === 'activa' || !d.estado);
+}
+
+function estadoDeudaFiltro(){
+  if(document.getElementById('filtroDeudasActivas').checked) return 'activa';
+  if(document.getElementById('filtroDeudasPagadas').checked) return 'pagada';
+  return 'todas';
+}
+
+function renderDeudas(){
+  const resSaldo = document.getElementById('deudasResumenSaldo');
+  const resCuotas = document.getElementById('deudasResumenCuotas');
+  const resVen = document.getElementById('deudasResumenVencimiento');
+  const resInt = document.getElementById('deudasResumenIntereses');
+
+  const activas = deudasActivasCollection();
+  const sSaldo = activas.reduce((s,d) => s + (Number(d.saldoActual)||0), 0);
+  const sCuotas = activas.reduce((s,d) => s + (Number(d.cuotaMensual)||0), 0);
+  const sInt = activas.reduce((s,d) => s + interesesMensualesDeuda(d), 0);
+  const now = new Date();
+  let proxima = null;
+  activas.forEach(d => {
+    const dia = Number(d.diaVencimiento);
+    if(!(dia >= 1 && dia <= 31)) return;
+    const f = dia >= now.getDate()
+      ? new Date(now.getFullYear(), now.getMonth(), dia)
+      : new Date(now.getFullYear(), now.getMonth() + 1, dia);
+    if(!proxima || f < proxima.f) proxima = { d: d, f: f };
+  });
+
+  if(resSaldo) animarValor(resSaldo, sSaldo, fmtPYG);
+  if(resCuotas) animarValor(resCuotas, sCuotas, fmtPYG);
+  if(resInt) animarValor(resInt, sInt, fmtPYG);
+  if(resVen){
+    resVen.textContent = proxima
+      ? 'Día ' + proxima.d.diaVencimiento + ' · ' + (proxima.d.nombre || proxima.d.entidad || 'deuda')
+      : 'Sin deudas activas';
+    resVen.className = 'val deuda-delta' + (proxima ? ' deuda-verde' : '');
+  }
+
+  const filtro = estadoDeudaFiltro();
+  let lista;
+  if(filtro === 'activa') lista = deudasActivasCollection();
+  else if(filtro === 'pagada') lista = (deudas || []).filter(d => d.estado === 'pagada');
+  else lista = (deudas || []).slice();
+
+  const cont = document.getElementById('deudasCardsList');
+  if(!cont) return;
+  if(!lista.length){
+    cont.innerHTML = '<div class="deudas-empty">📭 Sin deudas' + (filtro === 'activa' ? ' activas' : filtro === 'pagada' ? ' pagadas' : ' registradas') + '</div>';
+    return;
+  }
+  cont.innerHTML = lista.map(d => {
+    const ini = Number(d.saldoInicial) || Number(d.saldoActual) || 0;
+    const act = Number(d.saldoActual) || 0;
+    const pct = ini > 0 ? Math.round(((ini - act) / ini) * 100) : 0;
+    const riesgo = act > ini * 0.5 ? 'alta' : (act > ini * 0.2 ? 'media' : 'baja');
+    const est = ESTADOS_DEUDA.indexOf(d.estado) > -1 ? d.estado : 'activa';
+    const tasa = formatTasaDeuda(d);
+    const tot = Number(d.cuotasTotales) || 0;
+    const pag = Number(d.cuotasPagadas) || 0;
+    const dia = Number(d.diaVencimiento) || null;
+    const pagable = est === 'activa' && act > 0;
+    return '<div class="deuda-card risk-' + riesgo + (est === 'pagada' ? ' est-pagada' : '') + '">' +
+      '<div class="deuda-card-top">' +
+        '<span><span class="deuda-card-nombre">' + esc(d.nombre || 'Sin nombre') + '</span>' +
+        (d.entidad ? '<span class="deuda-card-entidad">' + esc(d.entidad) + '</span>' : '') + '</span>' +
+        '<span class="deuda-estado ' + est + '">' + (est === 'activa' ? 'Activa' : est === 'pagada' ? 'Pagada' : 'Refinanciada') + '</span>' +
+      '</div>' +
+      '<div class="deuda-saldo">' + formatPYG(act) + '</div>' +
+      '<div class="deuda-progress"><div class="fill" style="width:' + Math.min(Math.max(pct,0),100) + '%"></div></div>' +
+      '<div class="deuda-card-meta">' +
+        (tasa ? '<span>Tasa: <b>' + esc(tasa) + '</b></span>' : '') +
+        '<span>Cuota: <b>' + formatPYG(Number(d.cuotaMensual) || 0) + '/mes</b></span>' +
+        (tot > 0 ? '<span>Cuotas: <b>' + pag + ' de ' + tot + '</b></span>' : '') +
+        (dia && dia >= 1 && dia <= 31 ? '<span>Vence: <b>día ' + dia + '</b></span>' : '') +
+      '</div>' +
+      '<div class="deuda-card-actions">' +
+        '<button type="button" class="btn-pago" data-pago="' + esc(d.id) + '"' + (pagable ? '' : ' disabled') + '>💰 Registrar pago</button>' +
+        '<button type="button" class="btn-edit-deuda" data-edit-deuda="' + esc(d.id) + '" title="Editar">✏️</button>' +
+        '<button type="button" class="btn-del-deuda" data-del-deuda="' + esc(d.id) + '" title="Eliminar">🗑️</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function addDeudaRec(rec){
+  if(!firestoreReady || !db) return Promise.resolve();
+  return db.collection('deudas').add({
+    nombre: rec.nombre || '', entidad: rec.entidad || '', uid: rec.id || null,
+    saldoInicial: Number(rec.saldoInicial) || 0, saldoActual: Number(rec.saldoInicial) || 0,
+    tasaInteres: Number(rec.tasaInteres) || 0, tipoTasa: rec.tipoTasa || 'efectiva-anual',
+    cuotaMensual: Number(rec.cuotaMensual) || 0, cuotasTotales: Number(rec.cuotasTotales) || 1,
+    cuotasPagadas: Number(rec.cuotasPagadas) || 0,
+    diaVencimiento: rec.diaVencimiento || null, fechaInicio: rec.fechaInicio || null,
+    estado: 'activa', creadoPor: getNombreUsuario(), timestamp: tsField()
+  });
+}
+
+function updateDeudaRec(id, cambios){
+  if(!firestoreReady || !db) return Promise.resolve();
+  return db.collection('deudas').doc(id).update(Object.assign({}, cambios, { timestamp: tsField() }));
+}
+
+function removeDeudaRec(id){
+  if(!firestoreReady || !db) return Promise.resolve();
+  return db.collection('deudas').doc(id).delete();
+}
+
+document.getElementById('dForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const form = e.target;
+  if(!form.checkValidity()){ form.reportValidity(); return; }
+  const nombre = document.getElementById('dNombre').value.trim();
+  if(!nombre){ toast('Ingresa el nombre de la deuda', 'error'); return; }
+  const saldo = Number(document.getElementById('dSaldoInicial').value) || 0;
+  if(!(saldo > 0)){ toast('Ingresa un saldo inicial válido', 'error'); const elF = document.getElementById('dSaldoInicial'); if(elF) elF.focus(); return; }
+  const dia = parseInt(document.getElementById('dDiaVencimiento').value, 10);
+  if(dia && (dia < 1 || dia > 31)){ toast('El día de vencimiento debe estar entre 1 y 31', 'error'); return; }
+  const datos = {
+    nombre: nombre,
+    entidad: document.getElementById('dEntidad').value.trim(),
+    saldoInicial: saldo,
+    tasaInteres: Number(document.getElementById('dTasaInteres').value) || 0,
+    tipoTasa: document.getElementById('dTipoTasa').value || 'efectiva-anual',
+    cuotaMensual: Number(document.getElementById('dCuotaMensual').value) || 0,
+    cuotasTotales: Number(document.getElementById('dCuotasTotales').value) || 1,
+    diaVencimiento: dia || null,
+    fechaInicio: document.getElementById('dFechaInicio').value || hoy()
+  };
+  if(editandoDeuda){
+    const cambios = Object.assign({}, datos);
+    const actual = (deudas || []).find(x => x.id === editandoDeuda);
+    if(!(actual && Number(actual.cuotasPagadas) > 0)) cambios.saldoActual = saldo;
+    updateDeudaRec(editandoDeuda, cambios).then(() => {
+      toast('Deuda actualizada ✔');
+      cancelarEdicionDeuda();
+      renderDeudas();
+    });
+    return;
+  }
+  const nuevo = Object.assign({ id: newId() }, datos);
+  addDeudaRec(nuevo).then(() => {
+    toast('Deuda agregada ✔');
+    vibrar(50);
+    form.reset();
+    document.getElementById('dFechaInicio').value = hoy();
+    renderDeudas();
+  });
+});
+
+function cancelarEdicionDeuda(){
+  editandoDeuda = null;
+  const btn = document.getElementById('btnSubmitDeuda');
+  const cancel = document.getElementById('btnCancelDeuda');
+  if(btn) btn.textContent = '➕ Agregar Deuda';
+  if(cancel) cancel.hidden = true;
+  const form = document.getElementById('dForm');
+  if(form) form.reset();
+  const f = document.getElementById('dFechaInicio');
+  if(f) f.value = hoy();
+}
+
+document.getElementById('btnCancelDeuda').addEventListener('click', cancelarEdicionDeuda);
+
+function iniciarEdicionDeuda(d){
+  editandoDeuda = d.id;
+  document.getElementById('dNombre').value = d.nombre || '';
+  document.getElementById('dEntidad').value = d.entidad || '';
+  document.getElementById('dSaldoInicial').value = d.saldoInicial != null ? d.saldoInicial : '';
+  document.getElementById('dTasaInteres').value = d.tasaInteres != null ? d.tasaInteres : '';
+  document.getElementById('dTipoTasa').value = (['efectiva-anual','nominal-anual','mensual'].indexOf(d.tipoTasa) > -1) ? d.tipoTasa : 'efectiva-anual';
+  document.getElementById('dCuotaMensual').value = d.cuotaMensual != null ? d.cuotaMensual : '';
+  document.getElementById('dCuotasTotales').value = d.cuotasTotales != null ? d.cuotasTotales : '';
+  document.getElementById('dDiaVencimiento').value = d.diaVencimiento != null ? d.diaVencimiento : '';
+  document.getElementById('dFechaInicio').value = d.fechaInicio || '';
+  document.getElementById('btnSubmitDeuda').textContent = '💾 Guardar cambios';
+  document.getElementById('btnCancelDeuda').hidden = false;
+  goView('deudas');
+  setTimeout(() => { const el = document.getElementById('dNombre'); if(el) el.focus(); }, 150);
+}
+
+/* Registrar un pago sobre una deuda: alta de gasto en "registros" + actualización de la deuda */
+function abrirPagoDeuda(id){
+  pagoDeudaSel = null;
+  const d = (deudas || []).find(x => x.id === id);
+  if(!d){ toast('Deuda no encontrada', 'error'); return; }
+  pagoDeudaSel = d;
+  document.getElementById('pagoDeudaId').value = d.id;
+  document.getElementById('pagoDeudaTxt').value = (d.nombre || '') + (d.entidad ? ' (' + d.entidad + ')' : '');
+  document.getElementById('pagoFecha').value = hoy();
+  document.getElementById('pagoMonto').value = Number(d.cuotaMensual) || '';
+  document.getElementById('pagoComentarios').value = '';
+  const ov = document.getElementById('pagoModal');
+  if(ov) ov.classList.add('open');
+}
+
+function cerrarPagoDeuda(){
+  pagoDeudaSel = null;
+  const ov = document.getElementById('pagoModal');
+  if(ov) ov.classList.remove('open');
+}
+
+document.getElementById('btnPagoCancelar').addEventListener('click', cerrarPagoDeuda);
+document.getElementById('pagoCerrar').addEventListener('click', cerrarPagoDeuda);
+(function(){
+  const ov = document.getElementById('pagoModal');
+  if(ov) ov.addEventListener('click', e => { if(e.target === ov) cerrarPagoDeuda(); });
+})();
+
+document.getElementById('btnPagoGuardar').addEventListener('click', () => {
+  const d = (deudas || []).find(x => x.id === document.getElementById('pagoDeudaId').value);
+  if(!d){ toast('Deuda no encontrada', 'error'); return; }
+  const monto = Number(document.getElementById('pagoMonto').value) || 0;
+  if(!(monto > 0)){ toast('Ingresa un monto de pago válido', 'error'); return; }
+  const fecha = document.getElementById('pagoFecha').value || hoy();
+  const comentarios = document.getElementById('pagoComentarios').value.trim();
+  const saldoAct = Number(d.saldoActual) || 0;
+  const nuevoSaldo = Math.max(saldoAct - monto, 0);
+  const cuotasPag = (Number(d.cuotasPagadas) || 0) + 1;
+  const nuevoEstado = nuevoSaldo <= 0 ? 'pagada' : 'activa';
+  addGastoRec({
+    id: newId(), fecha: fecha, descripcion: 'Pago deuda · ' + (d.nombre || ''),
+    categoria: 'Deudas', monto: monto, metodoPago: 'Efectivo',
+    comentarios: comentarios, persona: getNombreUsuario() || 'Yo',
+    tipoGasto: 'unico', tieneCuotas: false
+  }).then(() => updateDeudaRec(d.id, { saldoActual: nuevoSaldo, cuotasPagadas: cuotasPag, estado: nuevoEstado }))
+  .then(() => {
+    cerrarPagoDeuda();
+    toast('Pago registrado ✔');
+    vibrar(50);
+    renderAll();
+  });
+});
+
+document.getElementById('deudasCardsList').addEventListener('click', e => {
+  const btnPago = e.target.closest('[data-pago]');
+  if(btnPago){ abrirPagoDeuda(btnPago.dataset.pago); return; }
+  const btnEdit = e.target.closest('[data-edit-deuda]');
+  if(btnEdit){
+    const rec = (deudas || []).find(x => x.id === btnEdit.dataset.editDeuda);
+    if(rec) iniciarEdicionDeuda(rec);
+    return;
+  }
+  const btnDel = e.target.closest('[data-del-deuda]');
+  if(!btnDel) return;
+  confirmDelete('¿Eliminar esta deuda? Esta acción no se puede deshacer.', () => {
+    removeDeudaRec(btnDel.dataset.delDeuda).then(() => {
+      if(!firestoreReady) renderDeudas();
+      toast('Deuda eliminada', 'info');
+      vibrar(50);
+    });
+  });
+});
+
+['filtroDeudasActivas','filtroDeudasPagadas','filtroDeudasTodas'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('change', renderDeudas);
 });
 
 /* ------------------ PRESUPUESTO ------------------ */
@@ -1808,6 +2534,45 @@ function renderPresupuesto(){
     });
     inp.addEventListener('focus', () => inp.select());
   });
+
+  renderDeudasActivas();
+}
+
+function renderDeudasActivas(){
+  const tbody = document.getElementById('deudasActivasTbody');
+  if(!tbody) return;
+  const fmtS = document.getElementById('deudasActivasTotalSaldo');
+  const fmtC = document.getElementById('deudasActivasTotalCuotas');
+  const lista = deudaActivasLista().sort((a,b) => (Number(b.saldoPendiente)||0) - (Number(a.saldoPendiente)||0));
+  if(!lista.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">🎉 Sin deudas activas</td></tr>';
+    if(fmtS) fmtS.textContent = formatPYG(0);
+    if(fmtC) fmtC.textContent = formatPYG(0);
+    return;
+  }
+  let sSaldo = 0, sCuota = 0;
+  tbody.innerHTML = lista.map(g => {
+    const saldo = Number(g.saldoPendiente) || 0;
+    const cuota = Number(g.cuotaMensual) || 0;
+    const tasa = formatTasa(g);
+    const tot = Number(g.cuotasTotales) || 0;
+    const pag = Number(g.cuotasPagadas) || 0;
+    const fal = tot > 0
+      ? Math.max(tot - pag, 0)
+      : (g.cuotasFaltantes != null && g.cuotasFaltantes !== '' ? Number(g.cuotasFaltantes) : null);
+    const dia = Number(g.diaVencimiento) || null;
+    sSaldo += saldo; sCuota += cuota;
+    return '<tr>' +
+      '<td>' + esc(g.entidadAcreedor || g.descripcion || '—') + '</td>' +
+      '<td class="monto gas">' + formatPYG(saldo) + '</td>' +
+      '<td>' + (tasa ? esc(tasa) : '—') + '</td>' +
+      '<td class="monto gas">' + (cuota > 0 ? formatPYG(cuota) : '—') + '</td>' +
+      '<td>' + (fal != null ? fal : '—') + '</td>' +
+      '<td>' + (dia ? 'Día ' + dia : '—') + '</td>' +
+    '</tr>';
+  }).join('');
+  if(fmtS) fmtS.textContent = formatPYG(sSaldo);
+  if(fmtC) fmtC.textContent = formatPYG(sCuota);
 }
 
 /* ------------------ RESUMEN ------------------ */
@@ -2029,8 +2794,64 @@ function renderResumenTabla(agg){
     : '<tr><td colspan="6" class="empty">Sin datos para este periodo</td></tr>';
 }
 
+function renderDeudasResumen(){
+  const grid = document.getElementById('deudasKpiGrid');
+  const card = document.getElementById('deudasChartCard');
+  const lista = deudaActivasLista();
+  if(grid) grid.hidden = !lista.length;
+  if(card) card.hidden = !lista.length;
+
+  let sSaldo = 0, sCuotas = 0, sInteres = 0;
+  lista.forEach(g => {
+    sSaldo += Number(g.saldoPendiente) || 0;
+    sCuotas += Number(g.cuotaMensual) || 0;
+    sInteres += interesesMensuales(g);
+  });
+
+  animarValor(document.getElementById('kpiSaldoDeudas'), sSaldo, fmtPYG);
+  animarValor(document.getElementById('kpiInteresesMes'), sInteres, fmtPYG);
+  animarValor(document.getElementById('kpiCuotasMes'), sCuotas, fmtPYG);
+
+  const prefix = resumenPeriodoKey();
+  const tIng = total(filtrarPorPrefijo(ingresos, prefix));
+  const pct = tIng > 0 && sCuotas > 0 ? (sCuotas / tIng) * 100 : 0;
+  const elPct = document.getElementById('kpiPctComprometido');
+  elPct.className = 'valor ' + (pct > 50 ? 'neg' : (pct > 30 ? 'zero' : 'pos'));
+  animarValor(elPct, pct, fmtPct);
+  const sub = document.getElementById('kpiPctComprometidoSub');
+  if(sub){
+    if(!lista.length){ sub.className = 'sub'; sub.textContent = 'Sin deudas activas'; }
+    else if(tIng <= 0){ sub.className = 'sub'; sub.textContent = 'Sin ingresos en el periodo'; }
+    else if(pct > 50){ sub.className = 'sub deuda-sub over'; sub.textContent = '🔴 Tus deudas consumen el ' + Math.round(pct) + '% de tus ingresos'; }
+    else if(pct > 30){ sub.className = 'sub deuda-sub warn'; sub.textContent = '🟡 Tus deudas consumen el ' + Math.round(pct) + '% de tus ingresos'; }
+    else { sub.className = 'sub'; sub.textContent = '🟢 Tus deudas consumen el ' + Math.round(pct) + '% de tus ingresos'; }
+  }
+
+  if(chartDebudas){ chartDebudas.destroy(); chartDebudas = null; }
+  const canvas = document.getElementById('chartDebudasHor');
+  if(!canvas || !lista.length || typeof Chart === 'undefined') return;
+  const porEntidad = {};
+  lista.forEach(g => {
+    const k = (g.entidadAcreedor || g.descripcion || 'Sin entidad');
+    porEntidad[k] = (porEntidad[k] || 0) + (Number(g.saldoPendiente) || 0);
+  });
+  const labels = Object.keys(porEntidad).sort((a,b) => porEntidad[b] - porEntidad[a]);
+  const vals = labels.map(l => Math.round(porEntidad[l]));
+  const th = chartTheme();
+  chartDebudas = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: { labels: labels, datasets: [{ label: 'Saldo pendiente', data: vals, backgroundColor: '#E07A5F', borderRadius: 6 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => 'Saldo: ₲ ' + Math.round(c.parsed.x).toLocaleString('es-PY') } } },
+      scales: { x: { beginAtZero: true, ticks: { callback: v => Math.round(v).toLocaleString('es-PY') }, grid: { color: th.grid } }, y: { grid: { display: false } } }
+    }
+  });
+}
+
 function renderResumen(){
   renderGastosFijos();
+  renderDeudasResumen();
   const prefix = resumenPeriodoKey();
   const gs = filtrarPorPrefijo(gastos, prefix);
   const ins = filtrarPorPrefijo(ingresos, prefix);
@@ -2492,8 +3313,10 @@ function setupNameOverlay(){
 
 document.getElementById('inFecha').value = hoy();
 document.getElementById('gFecha').value = hoy();
+document.getElementById('dFechaInicio').value = hoy();
 fillSelects();
 aplicarVisibilidadCuotasGasto();
+aplicarVisibilidadDeudaGasto();
 initSwipe();
 setupNameOverlay();
 const cfgInicial = getFirebaseConfig();
