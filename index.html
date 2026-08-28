@@ -7,7 +7,7 @@
 <meta name="description" content="App de registro de ingresos y gastos familiares">
 <meta name="theme-color" content="#6B5B95">
 <meta name="color-scheme" content="light dark">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="./manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -138,6 +138,8 @@ textarea{resize:vertical;min-height:88px}
 .form-actions .btn{flex:1}
 .btn-cancel{background:#EEF2F7;color:var(--texto)}
 .btn-cancel:hover{filter:brightness(.98);transform:none}
+.btn-sheets{background:linear-gradient(135deg,#0F9D58,#1EC286)}
+.export-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
 
 .kpi-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:18px}
 @media(min-width:768px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
@@ -472,6 +474,9 @@ html.dark .alerts-list li.near-end{background:#3B2F14;border-color:#92400E}
         </label>
       </div>
       <div class="chip">Mostrando: <b id="resumenPeriodoLbl">...</b></div>
+      <div class="export-actions">
+        <button type="button" class="btn btn-sheets" id="btnExportSheets">📤 Abrir en Google Sheets</button>
+      </div>
     </div>
 
     <div class="kpi-grid">
@@ -1699,6 +1704,48 @@ function renderGastosFijos(){
     : '🔁 Solo gastos fijos recurrentes sin cuotas';
 }
 
+/* ------------------ EXPORTAR A GOOGLE SHEETS ------------------ */
+
+function csvField(v){
+  return '"' + String(v == null ? '' : v).replace(/\r?\n/g, ' ').replace(/"/g, '""') + '"';
+}
+
+function exportarGoogleSheets(){
+  const filas = [];
+  (ingresos || []).forEach(i => {
+    filas.push([i.fecha || '', 'Ingreso', i.descripcion || '', i.persona || '', Number(i.monto) || 0, '', '', '', i.comentarios || '']);
+  });
+  (gastos || []).forEach(g => {
+    const cuotas = g.tieneCuotas && Number(g.cuotasTotales) > 0
+      ? (Number(g.cuotasPagadas) || 0) + '/' + (Number(g.cuotasTotales) || 0) : '';
+    const tipoGasto = g.tipoGasto === 'fijo' ? 'Fijo (mensual)' : (g.tipoGasto === 'ocasional' ? 'Ocasional' : '');
+    filas.push([g.fecha || '', 'Gasto', g.descripcion || '', g.categoria || '', Number(g.monto) || 0, g.metodoPago || '', tipoGasto, cuotas, g.comentarios || '']);
+  });
+  if(!filas.length){
+    toast('No hay datos para exportar', 'error');
+    return;
+  }
+  filas.sort((a,b) => String(b[0]).localeCompare(String(a[0])));
+  const encabezados = ['Fecha','Tipo','Descripción','Persona/Categoría','Monto','Método de pago','Tipo Gasto','Cuotas','Comentarios'];
+  const csv = '\uFEFF' + [encabezados].concat(filas).map(f => f.map(csvField).join(';')).join('\r\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Control_Financiero_' + hoy() + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+  window.open('https://docs.google.com/spreadsheets/u/0/create?usp=sheets_home', '_blank');
+  toast('CSV descargado. Importalo en Google Sheets 📊', 'info');
+  vibrar(50);
+}
+
+document.getElementById('btnExportSheets').addEventListener('click', exportarGoogleSheets);
+
 function renderResumen(){
   renderGastosFijos();
   const prefix = resumenPeriodoKey();
@@ -1898,7 +1945,7 @@ isMobileMQ.addEventListener('change', () => {
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(err => console.warn('Service Worker no disponible:', err));
+    navigator.serviceWorker.register('sw.js', { scope: './' }).catch(err => console.warn('Service Worker no disponible:', err));
   });
 }
 
