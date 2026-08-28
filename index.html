@@ -115,9 +115,10 @@ main{max-width:1280px;margin:0 auto;padding:16px 16px calc(96px + env(safe-area-
 .form-grid label.field{background:#FBFCFE;border:1px solid var(--borde);border-radius:12px;padding:0 12px 10px;gap:2px;transition:border-color .2s,box-shadow .2s}
 .form-grid label.field:focus-within{border-color:var(--primario);box-shadow:0 0 0 3px rgba(79,70,229,.12);background:#fff}
 .form-grid label.field>span{font-size:.72rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase;padding-top:8px;opacity:.75}
-.form-grid label.field input,.form-grid label.field select{margin-top:-8px;border:none;background:transparent;box-shadow:none;padding:0 0 4px;min-height:42px;font-size:16px;color:var(--texto)}
+.form-grid label.field input{margin-top:-8px;border:none;background:transparent;box-shadow:none;padding:0 0 4px;min-height:42px;font-size:16px;color:var(--texto)}
+.form-grid label.field select{margin-top:-8px;border:none;background-color:transparent;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 4px center;background-size:12px 12px;box-shadow:none;padding:0 20px 4px 0;min-height:42px;font-size:16px;color:var(--texto)}
 input[type=text],input[type=number],input[type=date],select,textarea{width:100%;min-height:48px;padding:11px 12px;border:1px solid var(--borde);border-radius:10px;background:#FBFCFE;font-size:16px;color:var(--texto);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23718096' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:34px}
+select{background-color:#ffffff;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-size:12px 12px;padding-right:34px;border:1px solid #cbd5e1;color:#1e293b}
 input:focus,select:focus,textarea:focus{border-color:var(--primario);box-shadow:0 0 0 3px rgba(79,70,229,.12);background:#fff}
 textarea{resize:vertical;min-height:88px}
 
@@ -297,7 +298,9 @@ html.dark input:focus,html.dark select:focus,html.dark textarea:focus{border-col
 html.dark .form-grid label.field{background:#1a1a2e;border-color:var(--borde)}
 html.dark .form-grid label.field:focus-within{background:#1a1a2e;border-color:var(--acento)}
 html.dark .form-grid label.field input,.html.dark .form-grid label.field select{color:var(--texto)}
-html.dark select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23e2e8f0' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}
+html.dark select{background-color:#1a1a2e;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e2e8f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-size:12px 12px;padding-right:34px;color:#e2e8f0;border:1px solid #334155;border-radius:10px;color-scheme:dark;-webkit-appearance:none;appearance:none}
+html.dark .form-grid label.field select{background-color:transparent;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e2e8f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 4px center;background-size:12px 12px;color:var(--texto)}
+html.dark select option,html.dark select optgroup{background:#16213e;color:#e2e8f0}
 html.dark table tbody tr td{background:transparent;color:var(--texto)}
 html.dark .filter-row label select{color:var(--texto)}
 html.dark .tag{background:var(--borde)}
