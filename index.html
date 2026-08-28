@@ -208,6 +208,39 @@ tbody tr:last-child td{border-bottom:none}
 .alerts-list li .pct-tag.warn{color:var(--ambar)}
 .alerts-list li .pct-tag.over{color:var(--rojo)}
 .alerts-list li.ok-msg{color:var(--verde);font-weight:600;justify-content:center}
+
+/* ---- Tipo de gasto: fijo vs ocasional + cuotas ---- */
+.switch{position:relative;display:inline-block;width:48px;height:28px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.switch .slider{position:absolute;inset:0;background:#CBD5E1;border-radius:999px;cursor:pointer;transition:background .2s}
+.switch .slider::before{content:'';position:absolute;height:22px;width:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.switch input:checked + .slider{background:var(--primario)}
+.switch input:checked + .slider::before{transform:translateX(20px)}
+.toggle-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:4px 2px}
+.toggle-row .toggle-label{font-size:.9rem;font-weight:700;color:var(--texto);flex:1;min-width:150px}
+.toggle-row .switch-value{font-size:.85rem;font-weight:800;color:var(--suave);min-width:24px}
+.cuotas-section{display:grid;grid-template-columns:1fr;gap:12px;background:#F8FAFC;border:1px solid var(--borde);border-radius:14px;overflow:hidden;max-height:0;opacity:0;padding:0 14px;border-width:0;transition:max-height .3s ease,opacity .3s ease,padding .3s ease,border-width .3s ease}
+.form-grid .cuotas-section{grid-column:1 / -1}
+.cuotas-section.open{max-height:540px;opacity:1;padding:14px;border-width:1px}
+.cuotas-fields{display:grid;grid-template-columns:1fr;gap:12px;overflow:hidden;max-height:0;opacity:0;transition:max-height .3s ease,opacity .3s ease}
+.cuotas-fields.open{max-height:480px;opacity:1}
+@media(min-width:768px){.cuotas-fields{grid-template-columns:repeat(2,1fr)}}
+.faltantes-val{display:flex;align-items:center;min-height:48px;padding:11px 12px;border:1px dashed var(--borde);border-radius:10px;background:#fff;font-size:1rem;font-weight:800;color:var(--primario)}
+.tag.tipo-fijo{background:#DBEAFE;color:#1D4ED8}
+.tag.tipo-ocasional{background:#E2E8F0;color:#475569}
+.cuota-progress{display:flex;align-items:center;gap:8px;margin-top:6px}
+.cuota-progress .bar{flex:1;min-width:70px;height:8px;background:#EDF2F7;border-radius:8px;overflow:hidden}
+.cuota-progress .bar-fill{height:100%;border-radius:8px;transition:width .4s ease}
+.cuota-progress .bar-fill.cuota{background:#3B82F6}
+.cuota-progress .bar-fill.cuota.warn{background:var(--ambar)}
+.cuota-progress .bar-fill.cuota.over{background:var(--rojo)}
+.cuota-pct{font-size:.72rem;font-weight:700;color:var(--suave);white-space:nowrap}
+.cuota-progress.small{flex:1 1 100%;max-width:220px}
+.fijo-ocasional-chip{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.fijo-ocasional-chip .chip{display:inline-flex;align-items:center;gap:6px}
+.fijo-ocasional-chip .chip.tipo-fijo b{color:#1D4ED8}
+.fijo-ocasional-chip .chip.tipo-ocasional b{color:#475569}
+.alerts-list li.near-end{background:#FEF3C7;border-color:#FCD34D;border-radius:12px;padding:10px 12px;border-bottom:none}
 .cat-dot{width:11px;height:11px;border-radius:50%;margin-top:4px;flex-shrink:0}
 
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:60;background:#fff;border-top:1px solid var(--borde);display:flex;height:64px;box-shadow:0 -4px 16px rgba(30,41,59,.08);padding-bottom:env(safe-area-inset-bottom)}
@@ -304,6 +337,8 @@ html.dark select option,html.dark select optgroup{background:#16213e;color:#e2e8
 html.dark table tbody tr td{background:transparent;color:var(--texto)}
 html.dark .filter-row label select{color:var(--texto)}
 html.dark .tag{background:var(--borde)}
+html.dark .tag.tipo-fijo{background:#1E3A8A;color:#93C5FD}
+html.dark .tag.tipo-ocasional{background:#334155;color:#E2E8F0}
 html.dark .chip{background:var(--borde);color:#CBD5E1}
 html.dark .btn-secondary,.html.dark #sheetCancel{background:var(--borde);color:#CBD5E1}
 html.dark .fab-options button{background:#16213e;color:var(--texto);border-color:var(--borde)}
@@ -331,6 +366,15 @@ html.dark .btn-edit{background:#1a1a2e;color:#A5B4FC}
 html.dark .btn-edit:hover{background:var(--borde)}
 html.dark .sync-indicator.ok{background:#064E3B;color:#A7F3D0;border-color:#065F46}
 html.dark .sync-indicator.syncing{background:#78350F;color:#FDE68A;border-color:#92400E}
+html.dark .cuotas-section{background:#1a1a2e;border-color:var(--borde)}
+html.dark .switch .slider{background:#475569}
+html.dark .switch input:checked + .slider{background:var(--acento)}
+html.dark .switch .slider::before{background:#E2E8F0}
+html.dark .faltantes-val{background:#1a1a2e;border-color:var(--borde);color:var(--acento)}
+html.dark .cuota-progress .bar{background:#0f3460}
+html.dark .fijo-ocasional-chip .chip.tipo-fijo b{color:#93C5FD}
+html.dark .fijo-ocasional-chip .chip.tipo-ocasional b{color:#CBD5E1}
+html.dark .alerts-list li.near-end{background:#3B2F14;border-color:#92400E}
 
 @media(max-width:767px){
   #view-ingresos .table-wrap,#view-gastos .table-wrap{overflow:visible;max-height:none;border:none;background:transparent}
@@ -341,15 +385,15 @@ html.dark .sync-indicator.syncing{background:#78350F;color:#FDE68A;border-color:
   #view-ingresos tbody td,#view-gastos tbody td{display:flex;flex-direction:column;gap:2px;border:none;background:transparent;padding:2px;font-size:.95rem;flex:0 1 auto}
   #view-ingresos tbody td::before,#view-gastos tbody td::before{content:attr(data-label);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--suave)}
   #view-ingresos tbody td:nth-child(1),#view-gastos tbody td:nth-child(1){order:1;flex:1 1 auto;align-items:flex-start}
-  #view-ingresos tbody td:nth-child(1)::before,#view-gastos tbody td:nth-child(1)::before,#view-ingresos tbody td:nth-child(5)::before,#view-gastos tbody td:nth-child(4)::before{content:none}
-  #view-ingresos tbody td:nth-child(5),#view-gastos tbody td:nth-child(4){order:2;margin-left:auto;align-items:flex-end;font-size:1.05rem}
+  #view-ingresos tbody td:nth-child(1)::before,#view-gastos tbody td:nth-child(1)::before,#view-ingresos tbody td:nth-child(5)::before,#view-gastos tbody td:nth-child(5)::before{content:none}
+  #view-ingresos tbody td:nth-child(5),#view-gastos tbody td:nth-child(5){order:2;margin-left:auto;align-items:flex-end;font-size:1.05rem}
   #view-ingresos tbody td:nth-child(2),#view-gastos tbody td:nth-child(2){order:3;flex:1 1 100%;font-size:1.02rem;font-weight:600}
-  #view-ingresos tbody td:nth-child(3),#view-ingresos tbody td:nth-child(4){order:4;flex:1 1 calc(50% - 5px)}
-  #view-ingresos tbody td:nth-child(6),#view-gastos tbody td:nth-child(7){order:6;flex:1 1 100%;justify-content:center;padding-top:10px;margin-top:8px;border-top:1px dashed var(--borde)}
-  #view-ingresos tbody td:nth-child(6) .row-actions,#view-gastos tbody td:nth-child(7) .row-actions{width:100%}
-  #view-ingresos tbody td:nth-child(6) .btn-del,#view-ingresos tbody td:nth-child(6) .btn-edit,#view-gastos tbody td:nth-child(7) .btn-del,#view-gastos tbody td:nth-child(7) .btn-edit{flex:1}
-  #view-gastos tbody td:nth-child(3),#view-gastos tbody td:nth-child(5){order:4;flex:1 1 calc(50% - 5px)}
+  #view-ingresos tbody td:nth-child(3),#view-ingresos tbody td:nth-child(4),#view-gastos tbody td:nth-child(3),#view-gastos tbody td:nth-child(4){order:4;flex:1 1 calc(50% - 5px)}
+  #view-ingresos tbody td:nth-child(6),#view-gastos tbody td:nth-child(8){order:7;flex:1 1 100%;justify-content:center;padding-top:10px;margin-top:8px;border-top:1px dashed var(--borde)}
+  #view-ingresos tbody td:nth-child(6) .row-actions,#view-gastos tbody td:nth-child(8) .row-actions{width:100%}
+  #view-ingresos tbody td:nth-child(6) .btn-del,#view-ingresos tbody td:nth-child(6) .btn-edit,#view-gastos tbody td:nth-child(8) .btn-del,#view-gastos tbody td:nth-child(8) .btn-edit{flex:1}
   #view-gastos tbody td:nth-child(6){order:5;flex:1 1 100%}
+  #view-gastos tbody td:nth-child(7){order:6;flex:1 1 100%}
   #view-ingresos tbody td.empty,#view-gastos tbody td.empty{flex:1 1 100%;order:9;flex-direction:row;align-items:center;justify-content:center;font-size:1rem;padding:18px !important}
   #view-ingresos tbody tr:has(>td.empty),#view-gastos tbody tr:has(>td.empty){border:none;box-shadow:none;background:transparent;padding:0;margin-bottom:6px}
 }
@@ -449,6 +493,12 @@ html.dark .sync-indicator.syncing{background:#78350F;color:#FDE68A;border-color:
         <div class="valor" id="resumenAhorroTotal">₲ 0</div>
         <div class="sub">Ingresos − Gastos</div>
       </div>
+    </div>
+
+    <div class="card" id="gastosFijosCard">
+      <h2>🔁 Gastos Fijos del Mes</h2>
+      <ul class="alerts-list" id="gastosFijosLista"></ul>
+      <div class="chip" id="gastosFijosTotal" style="margin-top:12px">⏳ Te quedan 0 cuotas por pagar este mes</div>
     </div>
 
     <div class="charts-grid">
@@ -552,6 +602,12 @@ html.dark .sync-indicator.syncing{background:#78350F;color:#FDE68A;border-color:
         <label class="field"><span>📅 Fecha</span>
           <input type="date" id="gFecha" required>
         </label>
+        <label class="field"><span>🗂️ Tipo de gasto</span>
+          <select id="gTipo" required>
+            <option value="fijo">🔄 Fijo (mensual)</option>
+            <option value="ocasional">📅 Ocasional (una vez)</option>
+          </select>
+        </label>
         <label class="field"><span>🖊️ Descripción</span>
           <input type="text" id="gDescripcion" placeholder="Ej: Supermercado" required maxlength="80">
         </label>
@@ -574,6 +630,30 @@ html.dark .sync-indicator.syncing{background:#78350F;color:#FDE68A;border-color:
             <option>Transferencia</option>
           </select>
         </label>
+        <div class="cuotas-section" id="gFijoPanel">
+          <div class="toggle-row">
+            <span class="toggle-label">🔁 ¿Este gasto tiene cuotas?</span>
+            <label class="switch" title="¿Tiene cuotas?">
+              <input type="checkbox" id="gTieneCuotas">
+              <span class="slider"></span>
+            </label>
+            <span class="switch-value" id="gTieneCuotasTxt">No</span>
+          </div>
+          <div class="cuotas-fields" id="gCuotasFields">
+            <label class="field"><span>🧮 Cuotas totales</span>
+              <input type="number" id="gCuotasTotales" min="1" step="1" inputmode="numeric" placeholder="Ej: 12">
+            </label>
+            <label class="field"><span>✅ Cuotas pagadas</span>
+              <input type="number" id="gCuotasPagadas" min="0" step="1" inputmode="numeric" placeholder="Ej: 3">
+            </label>
+            <label class="field"><span>⏳ Cuotas faltantes</span>
+              <div class="faltantes-val" id="gCuotasFaltantes">—</div>
+            </label>
+            <label class="field"><span>📆 Inicio de cuotas</span>
+              <input type="date" id="gFechaInicioCuotas">
+            </label>
+          </div>
+        </div>
         <label class="field"><span>📝 Comentarios</span>
           <textarea id="gComentarios" placeholder="Opcional" maxlength="200"></textarea>
         </label>
@@ -590,6 +670,20 @@ html.dark .sync-indicator.syncing{background:#78350F;color:#FDE68A;border-color:
         <label>Categoría
           <select id="gastosCat"></select>
         </label>
+        <label>Tipo
+          <select id="gastosTipo">
+            <option value="">Todos</option>
+            <option value="fijo">🔄 Fijos</option>
+            <option value="ocasional">📅 Ocasionales</option>
+          </select>
+        </label>
+        <label id="gastosCuotasWrap" hidden>Cuotas
+          <select id="gastosCuotas">
+            <option value="">Con o sin cuotas</option>
+            <option value="con">Con cuotas</option>
+            <option value="sin">Sin cuotas</option>
+          </select>
+        </label>
         <label>Mes
           <select id="gastosMes"></select>
         </label>
@@ -603,6 +697,7 @@ html.dark .sync-indicator.syncing{background:#78350F;color:#FDE68A;border-color:
             <tr>
               <th>Fecha</th>
               <th>Descripción</th>
+              <th>Tipo</th>
               <th>Categoría</th>
               <th>Monto</th>
               <th>Método</th>
@@ -635,6 +730,11 @@ html.dark .sync-indicator.syncing{background:#78350F;color:#FDE68A;border-color:
     <div class="card">
       <h2>📋 Presupuesto del mes</h2>
       <p style="font-size:.85rem;color:var(--suave);margin-bottom:14px">El "Gasto Real" se calcula automáticamente desde los gastos del mes actual. Edita el valor presupuestado y se guarda al instante.</p>
+      <div class="fijo-ocasional-chip" id="presupuestoFijosOcasional">
+        <span class="chip tipo-fijo">🔁 Fijos: <b id="presFijosTotal">₲ 0</b></span>
+        <span class="chip tipo-ocasional">📅 Ocasionales: <b id="presOcasionalesTotal">₲ 0</b></span>
+        <span class="chip">Parte fija del mes: <b id="presPctFijos">0%</b></span>
+      </div>
       <div class="table-wrap" style="max-height:600px">
         <table>
           <thead>
@@ -942,11 +1042,20 @@ function addIngresoRec(rec){
 
 function addGastoRec(rec){
   if(!firestoreReady || !db) return Promise.resolve();
+  const tiene = rec.tieneCuotas === true;
+  const tot = tiene ? (Number(rec.cuotasTotales)||0) : null;
+  const pag = tiene ? (Number(rec.cuotasPagadas)||0) : null;
   return db.collection('registros').add({
     tipo: 'gasto', fecha: rec.fecha, descripcion: rec.descripcion, categoria: rec.categoria,
     monto: rec.monto, metodoPago: rec.metodoPago, comentarios: rec.comentarios,
     persona: rec.persona || getNombreUsuario(), uid: rec.id,
-    creadoPor: getNombreUsuario(), timestamp: tsField()
+    creadoPor: getNombreUsuario(), timestamp: tsField(),
+    tipoGasto: rec.tipoGasto || 'ocasional',
+    tieneCuotas: tiene,
+    cuotasTotales: tot,
+    cuotasPagadas: pag,
+    cuotasFaltantes: tiene ? Math.max(tot - pag, 0) : null,
+    fechaInicioCuotas: tiene ? (rec.fechaInicioCuotas || null) : null
   });
 }
 
@@ -1248,6 +1357,14 @@ document.getElementById('formGasto').addEventListener('submit', e => {
   if(!form.checkValidity()){ form.reportValidity(); return; }
   const monto = parseFloat(document.getElementById('gMonto').value);
   if(!(monto > 0)){ toast('Ingresa un monto válido', 'error'); return; }
+  const esFijo = document.getElementById('gTipo').value === 'fijo';
+  const tieneCuotas = esFijo && document.getElementById('gTieneCuotas').checked;
+  const totCuotas = Number(document.getElementById('gCuotasTotales').value) || 0;
+  const pagCuotas = Number(document.getElementById('gCuotasPagadas').value) || 0;
+  if(tieneCuotas){
+    if(!(totCuotas >= 1)){ toast('Ingresa el total de cuotas (mínimo 1)', 'error'); const elF = document.getElementById('gCuotasTotales'); if(elF) elF.focus(); return; }
+    if(!(pagCuotas >= 0) || pagCuotas > totCuotas){ toast('Las cuotas pagadas no pueden superar el total', 'error'); return; }
+  }
   const datos = {
     fecha: document.getElementById('gFecha').value,
     descripcion: document.getElementById('gDescripcion').value.trim(),
@@ -1255,7 +1372,13 @@ document.getElementById('formGasto').addEventListener('submit', e => {
     monto: monto,
     metodoPago: document.getElementById('gMetodo').value,
     comentarios: document.getElementById('gComentarios').value.trim(),
-    persona: getNombreUsuario() || 'Yo'
+    persona: getNombreUsuario() || 'Yo',
+    tipoGasto: esFijo ? 'fijo' : 'ocasional',
+    tieneCuotas: tieneCuotas,
+    cuotasTotales: tieneCuotas ? totCuotas : null,
+    cuotasPagadas: tieneCuotas ? pagCuotas : null,
+    cuotasFaltantes: tieneCuotas ? Math.max(totCuotas - pagCuotas, 0) : null,
+    fechaInicioCuotas: tieneCuotas ? (document.getElementById('gFechaInicioCuotas').value || null) : null
   };
   if(editandoGasto){
     updateRecord(editandoGasto, datos).then(() => {
@@ -1272,6 +1395,7 @@ document.getElementById('formGasto').addEventListener('submit', e => {
     vibrar(50);
     form.reset();
     document.getElementById('gFecha').value = hoy();
+    aplicarVisibilidadCuotasGasto();
     renderAll();
     const presCat = Number(presupuesto[nuevo.categoria] || 0);
     if(presCat > 0){
@@ -1289,18 +1413,59 @@ function cancelarEdicionGasto(){
   if(cancel) cancel.hidden = true;
   document.getElementById('formGasto').reset();
   document.getElementById('gFecha').value = hoy();
+  aplicarVisibilidadCuotasGasto();
 }
 
 document.getElementById('btnCancelGasto').addEventListener('click', cancelarEdicionGasto);
 
+document.getElementById('gTipo').addEventListener('change', aplicarVisibilidadCuotasGasto);
+document.getElementById('gTieneCuotas').addEventListener('change', aplicarVisibilidadCuotasGasto);
+['gCuotasTotales','gCuotasPagadas'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el){ el.addEventListener('input', recalcFaltantesCuotas); el.addEventListener('change', recalcFaltantesCuotas); }
+});
+document.getElementById('gastosTipo').addEventListener('change', () => {
+  const wrap = document.getElementById('gastosCuotasWrap');
+  const t = document.getElementById('gastosTipo').value;
+  if(wrap) wrap.hidden = t !== 'fijo';
+  if(t !== 'fijo') document.getElementById('gastosCuotas').value = '';
+  renderGastos();
+});
+document.getElementById('gastosCuotas').addEventListener('change', renderGastos);
+
+function aplicarVisibilidadCuotasGasto(){
+  const panel = document.getElementById('gFijoPanel');
+  const esFijo = (document.getElementById('gTipo') || {}).value === 'fijo';
+  const tiene = !!(document.getElementById('gTieneCuotas') || {}).checked;
+  const fields = document.getElementById('gCuotasFields');
+  const txt = document.getElementById('gTieneCuotasTxt');
+  if(panel) panel.classList.toggle('open', esFijo);
+  if(fields) fields.classList.toggle('open', esFijo && tiene);
+  if(txt) txt.textContent = tiene ? 'Sí' : 'No';
+  recalcFaltantesCuotas();
+}
+
+function recalcFaltantesCuotas(){
+  const tot = Number((document.getElementById('gCuotasTotales') || {}).value) || 0;
+  const pag = Number((document.getElementById('gCuotasPagadas') || {}).value) || 0;
+  const el = document.getElementById('gCuotasFaltantes');
+  if(el) el.textContent = Math.max(tot - pag, 0) + ' cuota' + (Math.max(tot - pag, 0) === 1 ? '' : 's');
+}
+
 function iniciarEdicionGasto(g){
   editandoGasto = g.id;
   document.getElementById('gFecha').value = g.fecha || '';
+  document.getElementById('gTipo').value = (g.tipoGasto || 'ocasional') === 'fijo' ? 'fijo' : 'ocasional';
   document.getElementById('gDescripcion').value = g.descripcion || '';
   document.getElementById('gCategoria').value = g.categoria || '';
   document.getElementById('gMonto').value = g.monto != null ? g.monto : '';
   document.getElementById('gMetodo').value = g.metodoPago || 'Efectivo';
+  document.getElementById('gTieneCuotas').checked = !!g.tieneCuotas;
+  document.getElementById('gCuotasTotales').value = g.cuotasTotales != null ? g.cuotasTotales : '';
+  document.getElementById('gCuotasPagadas').value = g.cuotasPagadas != null ? g.cuotasPagadas : '';
+  document.getElementById('gFechaInicioCuotas').value = g.fechaInicioCuotas || '';
   document.getElementById('gComentarios').value = g.comentarios || '';
+  aplicarVisibilidadCuotasGasto();
   document.getElementById('btnSubmitGasto').textContent = '💾 Guardar cambios';
   document.getElementById('btnCancelGasto').hidden = false;
   goView('gastos');
@@ -1322,25 +1487,62 @@ function filterGastos(){
   });
 }
 
+function aplicarFiltroTipo(gastosLista){
+  const t = (document.getElementById('gastosTipo') || {}).value;
+  const c = (document.getElementById('gastosCuotas') || {}).value;
+  let out = gastosLista;
+  if(t){
+    out = out.filter(g => (g.tipoGasto || 'ocasional') === t);
+    if(c){
+      out = out.filter(g => (!!g.tieneCuotas) === (c === 'con'));
+    }
+  }
+  return out;
+}
+
+function tipoBadge(g){
+  if((g.tipoGasto || 'ocasional') === 'fijo') return '<span class="tag tipo-fijo">🔄 Fijo</span>';
+  return '<span class="tag tipo-ocasional">📅 Ocasional</span>';
+}
+
+function cuotaInfo(g){
+  if((g.tipoGasto || 'ocasional') !== 'fijo') return { badges:'', progress:'' };
+  if(!g.tieneCuotas) return { badges:'<span class="tag tipo-fijo">Mensual 🔁</span>', progress:'' };
+  const tot = Number(g.cuotasTotales) || 0;
+  const pag = Number(g.cuotasPagadas) || 0;
+  if(tot < 1) return { badges:'<span class="tag tipo-fijo">Mensual 🔁</span>', progress:'' };
+  const fal = Math.max(tot - pag, 0);
+  const pct = Math.min(Math.round(pag / tot * 100), 100);
+  const cls = pct >= 100 ? 'ok' : (fal <= 2 ? 'warn' : 'cuota');
+  const badges = '<span class="tag tipo-fijo">Cuota ' + pag + '/' + tot + '</span>'
+    + (fal > 0 ? ' <span class="tag tipo-fijo">Faltan ' + fal + '</span>' : '');
+  const progress = '<div class="cuota-progress"><div class="bar"><div class="bar-fill ' + cls + '" style="width:' + pct + '%"></div></div><span class="cuota-pct">' + pct + '%</span></div>';
+  return { badges, progress };
+}
+
 function renderGastos(){
   const tbody = document.getElementById('gastosTbody');
-  const lista = mostrarListaOFilter('gasto').sort((x,y) => (y.fecha||'').localeCompare(x.fecha||'') || y.id.localeCompare(x.id));
+  const lista = aplicarFiltroTipo(mostrarListaOFilter('gasto')).sort((x,y) => (y.fecha||'').localeCompare(x.fecha||'') || y.id.localeCompare(x.id));
   if(!lista.length){
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">📭 Sin gastos registrados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">📭 Sin gastos registrados</td></tr>';
   } else {
-    tbody.innerHTML = lista.map(g => `
+    tbody.innerHTML = lista.map(g => {
+      const ci = cuotaInfo(g);
+      return `
       <tr${g.id === lastAdded ? ' class="row-enter"' : ''}>
         <td data-label="Fecha" class="row-date">${fmtFecha(g.fecha)}</td>
         <td data-label="Descripción" class="row-desc">${esc(g.descripcion)}<span class="tag">👤 ${esc(g.creadoPor || g.persona || '—')}</span></td>
+        <td data-label="Tipo">${tipoBadge(g)} ${ci.badges}</td>
         <td data-label="Categoría">${catBadge(g.categoria)}</td>
-        <td data-label="Monto" class="monto gas">${formatPYG(g.monto)}</td>
+        <td data-label="Monto" class="monto gas">${formatPYG(g.monto)}${ci.progress}</td>
         <td data-label="Método de pago">${metodoTag(g.metodoPago)}</td>
         <td data-label="Comentarios" class="row-com">${esc(g.comentarios || '—')}</td>
         <td data-label="" class="row-action"><span class="row-actions">
           <button class="btn-edit btn-edit-gas" data-id="${g.id}" title="Editar">✏️</button>
           <button class="btn-del btn-del-gas" data-id="${g.id}" title="Eliminar">🗑️</button>
         </span></td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
   lastAdded = null;
   const totalMes = total(filtrarPorPrefijo(gastos, mesActualKey()));
@@ -1387,6 +1589,17 @@ function realPorCategoriaDelMes(){
 function renderPresupuesto(){
   const reales = realPorCategoriaDelMes();
   const tbody = document.getElementById('presupuestoTbody');
+  const mkCuat = mesActualKey();
+  let sf = 0, so = 0;
+  gastos.forEach(g => {
+    if((g.fecha||'').slice(0,7) !== mkCuat) return;
+    if((g.tipoGasto || 'ocasional') === 'fijo') sf += Number(g.monto)||0;
+    else so += Number(g.monto)||0;
+  });
+  const totalMesRec = sf + so;
+  document.getElementById('presFijosTotal').textContent = formatPYG(sf);
+  document.getElementById('presOcasionalesTotal').textContent = formatPYG(so);
+  document.getElementById('presPctFijos').textContent = totalMesRec > 0 ? Math.round(sf / totalMesRec * 100) + '%' : '0%';
   let html = '';
   let sPres = 0, sReal = 0, riesgo = 0;
   CATEGORIAS_GASTOS.forEach(c => {
@@ -1452,7 +1665,42 @@ function resumenPeriodoKey(){
   return yy + '-' + String(m).padStart(2,'0');
 }
 
+function renderGastosFijos(){
+  const card = document.getElementById('gastosFijosCard');
+  if(!card) return;
+  const fijos = gastos.filter(g => (g.tipoGasto || 'ocasional') === 'fijo');
+  if(!fijos.length){ card.hidden = true; return; }
+  card.hidden = false;
+  const lista = document.getElementById('gastosFijosLista');
+  let faltantesTotal = 0;
+  const html = fijos.map(g => {
+    let badge = '', sub = '', near = false;
+    if(g.tieneCuotas && Number(g.cuotasTotales) > 0){
+      const tot = Number(g.cuotasTotales) || 0;
+      const pag = Number(g.cuotasPagadas) || 0;
+      const fal = Math.max(tot - pag, 0);
+      faltantesTotal += fal;
+      near = fal > 0 && fal <= 2;
+      const pct = Math.min(Math.round(pag / tot * 100), 100);
+      badge = '<span class="tag tipo-fijo">Cuota ' + pag + '/' + tot + '</span>'
+        + (fal > 0 ? ' <span class="tag tipo-fijo">Faltan ' + fal + '</span>' : '')
+        + (near ? ' <span class="tag ambar">⚠️ ¡Por terminar!</span>' : '');
+      sub = '<div class="cuota-progress small"><div class="bar"><div class="bar-fill ' + (near ? 'warn' : (pct >= 100 ? 'ok' : 'cuota')) + '" style="width:' + pct + '%"></div></div></div>';
+    } else {
+      badge = '<span class="tag tipo-fijo">Mensual 🔁</span>';
+    }
+    return '<li class="' + (near ? 'near-end' : '') + '">' +
+      '<span class="txt"><b>' + esc(g.descripcion) + '</b> — ' + formatPYG(g.monto) + '/mes ' + badge + '</span>' + sub +
+    '</li>';
+  }).join('');
+  lista.innerHTML = html;
+  document.getElementById('gastosFijosTotal').innerHTML = faltantesTotal > 0
+    ? '⏳ Te quedan <b>' + faltantesTotal + '</b> cuota' + (faltantesTotal === 1 ? '' : 's') + ' por pagar este mes'
+    : '🔁 Solo gastos fijos recurrentes sin cuotas';
+}
+
 function renderResumen(){
+  renderGastosFijos();
   const prefix = resumenPeriodoKey();
   const gs = filtrarPorPrefijo(gastos, prefix);
   const ins = filtrarPorPrefijo(ingresos, prefix);
@@ -1853,6 +2101,7 @@ function setupNameOverlay(){
 document.getElementById('inFecha').value = hoy();
 document.getElementById('gFecha').value = hoy();
 fillSelects();
+aplicarVisibilidadCuotasGasto();
 initSwipe();
 setupNameOverlay();
 const cfgInicial = getFirebaseConfig();
