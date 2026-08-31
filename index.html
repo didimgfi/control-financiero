@@ -1625,6 +1625,13 @@ function registrarRegistroLocal(d){
 
 function watchFirestore(){
   if(!db || !firestoreReady) return;
+  /* Idempotente: limpiar listeners previos antes de registrar de nuevo (evita apilamiento y parpadeo). */
+  if(unMaster){ unMaster(); unMaster = null; }
+  if(unIng){ unIng(); unIng = null; }
+  if(unGas){ unGas(); unGas = null; }
+  if(unDeudas){ unDeudas(); unDeudas = null; }
+  if(unMetas){ unMetas(); unMetas = null; }
+  if(unGf){ unGf(); unGf = null; }
   /* Snapshot maestro: mantiene cachés (resumen, presupuesto, totales, años). */
   unMaster = db.collection('registros').onSnapshot(snap => {
     ingresos = [];
@@ -1796,6 +1803,11 @@ let chartDoughnut = null;
 let chartBarras = null;
 let chartLine = null;
 let chartDebudas = null;
+let _sigD = null;
+let _sigB = null;
+let _sigL = null;
+let _sigDeb = null;
+let _deudasListSig = null;
 let lastAdded = null;
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
@@ -1842,6 +1854,8 @@ function toast(msg, type){
 function vibrar(p){
   try { if(navigator.vibrate && typeof navigator.vibrate === 'function') navigator.vibrate(p); } catch(e){}
 }
+
+function viewActiva(n){ return curView === n; }
 
 const VIEWS = ['resumen','ingresos','gastos','deudas','presupuesto','metas'];
 let curView = 'resumen';
@@ -2301,6 +2315,14 @@ function renderDeudas(){
 
   const cont = document.getElementById('deudasCardsList');
   if(!cont) return;
+  const mk = mesActualKey();
+  const sig = filtro + ':' + lista.map(d =>
+    (d.id||'') + '|' + (d.estado||'activa') + '|' + (Number(d.saldoActual)||0) + '|' + (Number(d.cuotaMensual)||0) + '|' +
+    (Number(d.cuotasPagadas)||0) + '|' + (Number(d.cuotasTotales)||0) + '|' + ((gastos||[]).some(r => r.tipo === 'gasto' && r.esDeuda === true && r.deudaId === d.id && (r.fecha || '').slice(0, 7) === mk) ? 1 : 0)
+  ).join(';');
+  if(sig === _deudasListSig) return;
+  _deudasListSig = sig;
+
   if(!lista.length){
     cont.innerHTML = '<div class="deudas-empty">📭 Sin deudas' + (filtro === 'activa' ? ' activas' : filtro === 'pagada' ? ' pagadas' : ' registradas') + '</div>';
     return;
@@ -2317,7 +2339,6 @@ function renderDeudas(){
     const dia = Number(d.diaVencimiento) || null;
     const pagable = est === 'activa' && act > 0;
     const mesa = mesNombre(mesActualKey()).split(' ')[0];
-    const mk = mesActualKey();
     const cuotaPagada = (gastos || []).some(r => r.tipo === 'gasto' && r.esDeuda === true && r.deudaId === d.id && (r.fecha || '').slice(0, 7) === mk);
     const cuotaHtml = '<div class="gf-deuda-cuota"><span>Cuota de ' + mesa + ':</span>' +
       (cuotaPagada ? '<span class="gf-ok">✅ Pagada</span>' : '<span>⭕ Pendiente</span>') + '</div>';
@@ -3673,7 +3694,6 @@ function renderDeudasResumen(){
     else { sub.className = 'sub'; sub.textContent = '🟢 Tus deudas consumen el ' + Math.round(pct) + '% de tus ingresos'; }
   }
 
-  if(chartDebudas){ chartDebudas.destroy(); chartDebudas = null; }
   const canvas = document.getElementById('chartDebudasHor');
   if(!canvas || !lista.length || typeof Chart === 'undefined') return;
   const porEntidad = {};
@@ -3684,6 +3704,10 @@ function renderDeudasResumen(){
   const labels = Object.keys(porEntidad).sort((a,b) => porEntidad[b] - porEntidad[a]);
   const vals = labels.map(l => Math.round(porEntidad[l]));
   const th = chartTheme();
+  const sigDeb = 't'+ (th.grid||'') + ':' + labels.join('|') + ':' + vals.join(',');
+  if(!viewActiva('resumen') || sigDeb === _sigDeb) return;
+  if(chartDebudas){ chartDebudas.destroy(); chartDebudas = null; }
+  _sigDeb = sigDeb;
   chartDebudas = new Chart(canvas.getContext('2d'), {
     type: 'bar',
     data: { labels: labels, datasets: [{ label: 'Saldo pendiente', data: vals, backgroundColor: '#E07A5F', borderRadius: 6 }] },
@@ -3776,22 +3800,24 @@ function renderResumen(){
   /* Tabla resumen por categoría */
   renderResumenTabla(agg);
 
-  /* Charts */
+  /* Charts: solo se (re)crean si la vista Resumen está visible y los datos realmente cambiaron.
+     Así se evita el parpadeo al navegar entre pestañas o ante renders redundantes. */
   const hasChart = typeof Chart !== 'undefined';
-  if(chartDoughnut){ chartDoughnut.destroy(); chartDoughnut = null; }
-  if(chartBarras){ chartBarras.destroy(); chartBarras = null; }
-  if(chartLine){ chartLine.destroy(); chartLine = null; }
   const ctxD = document.getElementById('chartDoughnut').getContext('2d');
   const ctxB = document.getElementById('chartBarras').getContext('2d');
   const ctxL = document.getElementById('chartLine').getContext('2d');
 
   if(!gs.length){
+    if(chartDoughnut){ chartDoughnut.destroy(); chartDoughnut = null; }
+    if(chartBarras){ chartBarras.destroy(); chartBarras = null; }
+    if(chartLine){ chartLine.destroy(); chartLine = null; }
     ctxD.clearRect && ctxD.clearRect(0,0,ctxD.canvas.width,ctxD.canvas.height);
     ctxB.clearRect && ctxB.clearRect(0,0,ctxB.canvas.width,ctxB.canvas.height);
     ctxL.clearRect && ctxL.clearRect(0,0,ctxL.canvas.width,ctxL.canvas.height);
+    return;
   }
 
-  if(hasChart){
+  if(hasChart && viewActiva('resumen')){
     const th = chartTheme();
     if(Chart.defaults){
       Chart.defaults.color = th.texto;
@@ -3800,58 +3826,70 @@ function renderResumen(){
 
     const labelsD = Object.keys(agg).sort((a,b) => agg[b] - agg[a]);
     const valsD = labelsD.map(l => Math.round(agg[l]));
+    const meses = ultimosMesesKeys(prefix);
+    const labelsM = meses.map(labelMes);
+    const barIng = meses.map(k => total(filtrarPorPrefijo(ingresos, k)));
+    const barGas = meses.map(k => total(filtrarPorPrefijo(gastos, k)));
+    const sigD = 't'+ (th.rojo||'') + ':' + labelsD.join('|') + ':' + valsD.join(',');
+    const sigB = 't'+ (th.rojo||'') + ':' + labelsM.join('|') + ':' + barIng.join(',') + ':' + barGas.join(',');
 
-    if(labelsD.length){
+    if(labelsD.length && sigD !== _sigD){
+      if(chartDoughnut){ chartDoughnut.destroy(); chartDoughnut = null; }
       chartDoughnut = new Chart(ctxD, {
         type:'doughnut',
         data:{ labels: labelsD, datasets:[{ data:valsD, backgroundColor:labelsD.map((_,i) => PALETA[i % PALETA.length]), borderColor:th.carta, borderWidth:2 }] },
         options:{ responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, usePointStyle:true } }, tooltip:{ callbacks:{ label: ctx => ctx.label + ': ₲ ' + Math.round(ctx.parsed).toLocaleString('es-PY') } } } }
       });
+      _sigD = sigD;
     }
 
-    const meses = ultimosMesesKeys(prefix);
-    const labelsM = meses.map(labelMes);
-    const barIng = meses.map(k => total(filtrarPorPrefijo(ingresos, k)));
-    const barGas = meses.map(k => total(filtrarPorPrefijo(gastos, k)));
-    chartBarras = new Chart(ctxB, {
-      type:'bar',
-      data:{
-        labels: labelsM,
-        datasets:[
-          { label:'Ingresos', data: barIng.map(v => Math.round(v)), backgroundColor:'rgba(59,130,246,.8)', borderRadius:6 },
-          { label:'Gastos', data: barGas.map(v => Math.round(v)), backgroundColor: th.rojo, borderRadius:6 }
-        ]
-      },
-      options:{ responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{ position:'top' }, tooltip:{ callbacks:{ label: ctx => ctx.dataset.label + ': ₲ ' + Math.round(ctx.parsed.y).toLocaleString('es-PY') } } },
-        scales:{ x:{ grid:{ color: th.grid } }, y:{ beginAtZero:true, ticks:{ callback: v => Math.round(v).toLocaleString('es-PY') }, grid:{ color: th.grid } } }
-      }
-    });
+    if(sigB !== _sigB){
+      if(chartBarras){ chartBarras.destroy(); chartBarras = null; }
+      chartBarras = new Chart(ctxB, {
+        type:'bar',
+        data:{
+          labels: labelsM,
+          datasets:[
+            { label:'Ingresos', data: barIng.map(v => Math.round(v)), backgroundColor:'rgba(59,130,246,.8)', borderRadius:6 },
+            { label:'Gastos', data: barGas.map(v => Math.round(v)), backgroundColor: th.rojo, borderRadius:6 }
+          ]
+        },
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ position:'top' }, tooltip:{ callbacks:{ label: ctx => ctx.dataset.label + ': ₲ ' + Math.round(ctx.parsed.y).toLocaleString('es-PY') } } },
+          scales:{ x:{ grid:{ color: th.grid } }, y:{ beginAtZero:true, ticks:{ callback: v => Math.round(v).toLocaleString('es-PY') }, grid:{ color: th.grid } } }
+        }
+      });
+      _sigB = sigB;
+    }
 
     const ahorros = meses.map((k,i) => (barIng[i] || 0) - (barGas[i] || 0));
-    chartLine = new Chart(ctxL, {
-      type:'line',
-      data:{
-        labels: labelsM,
-        datasets:[{
-          label:'Ahorro',
-          data: ahorros,
-          borderWidth:3,
-          tension:.35,
-          fill:false,
-          segment:{ borderColor: c => { const v = c.p0 && c.p0.parsed ? c.p0.parsed.y : 0; return v >= 0 ? th.verde : th.rojo; } },
-          pointBackgroundColor: ahorros.map(v => v >= 0 ? th.verde : th.rojo),
-          pointBorderColor: th.carta,
-          pointBorderWidth:2,
-          pointRadius:4.5,
-          pointHoverRadius:7
-        }]
-      },
-      options:{ responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => 'Ahorro: ₲ ' + Math.round(ctx.parsed.y).toLocaleString('es-PY') } } },
-        scales:{ x:{ grid:{ color: th.grid } }, y:{ ticks:{ callback: v => Math.round(v).toLocaleString('es-PY') }, grid:{ color: th.grid } } }
-      }
-    });
+    if(sigB !== _sigL){
+      if(chartLine){ chartLine.destroy(); chartLine = null; }
+      chartLine = new Chart(ctxL, {
+        type:'line',
+        data:{
+          labels: labelsM,
+          datasets:[{
+            label:'Ahorro',
+            data: ahorros,
+            borderWidth:3,
+            tension:.35,
+            fill:false,
+            segment:{ borderColor: c => { const v = c.p0 && c.p0.parsed ? c.p0.parsed.y : 0; return v >= 0 ? th.verde : th.rojo; } },
+            pointBackgroundColor: ahorros.map(v => v >= 0 ? th.verde : th.rojo),
+            pointBorderColor: th.carta,
+            pointBorderWidth:2,
+            pointRadius:4.5,
+            pointHoverRadius:7
+          }]
+        },
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => 'Ahorro: ₲ ' + Math.round(ctx.parsed.y).toLocaleString('es-PY') } } },
+          scales:{ x:{ grid:{ color: th.grid } }, y:{ ticks:{ callback: v => Math.round(v).toLocaleString('es-PY') }, grid:{ color: th.grid } } }
+        }
+      });
+      _sigL = sigB;
+    }
   }
 }
 
