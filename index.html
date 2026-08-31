@@ -348,7 +348,8 @@ html.dark .deuda-estado.refinanciada{background:#78350F;color:#FDE68A}
 .deuda-card-actions button{flex:1;border:none;border-radius:12px;min-height:44px;font-size:.85rem;font-weight:700;cursor:pointer;transition:.15s ease;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
 .deuda-card-actions button:active{transform:scale(.98)}
 .btn-pago{background:linear-gradient(135deg,#E07A5F,#C95D3E);color:#fff}
-.btn-pago:disabled{opacity:.5;cursor:not-allowed}
+.btn-pago-cuota{background:linear-gradient(135deg,#10B981,#059669);color:#fff}
+.btn-pago:disabled,.btn-pago-cuota:disabled{opacity:.5;cursor:not-allowed}
 .btn-edit-deuda{background:#EEF2F7;color:var(--texto)}
 .btn-del-deuda{background:#FEE2E2;color:var(--rojo)}
 html.dark .btn-edit-deuda{background:#1a1a2e;color:#CBD5E1}
@@ -380,6 +381,135 @@ html.dark .pago-x{background:#1a1a2e;color:#CBD5E1}
 html.dark #btnPagoCancelar{background:#1a1a2e;color:#CBD5E1}
 @media(max-width:767px){
   .deuda-card-actions button{font-size:.8rem;padding:0 4px}
+}
+
+/* ---- Pestaña metas: objetivos de ahorro (colección "metas") ---- */
+.meta-card{background:var(--card);border-radius:16px;box-shadow:var(--sombra);padding:16px 16px 14px;margin-bottom:14px;position:relative;overflow:hidden;animation:fadeIn .3s ease}
+.meta-card.meta-done{box-shadow:0 0 0 2px rgba(16,185,129,.45), var(--sombra)}
+.meta-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.meta-nombre-wrap{display:flex;gap:10px;align-items:flex-start;min-width:0}
+.meta-emoji{font-size:1.6rem;line-height:1;background:var(--borde);width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.meta-nombre{display:block;font-weight:800;font-size:1.02rem;color:var(--texto)}
+.meta-desc{display:block;font-size:.78rem;color:var(--suave);font-weight:600;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meta-estado{display:inline-block;border-radius:999px;padding:3px 11px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;background:#E2E8F0;color:#475569}
+.meta-estado.activa{background:#D1FAE5;color:#047857}
+.meta-estado.pausada{background:#FEF3C7;color:#B45309}
+.meta-estado.completada{background:#DBEAFE;color:#1D4ED8}
+html.dark .meta-estado.activa{background:#064E3B;color:#A7F3D0}
+html.dark .meta-estado.pausada{background:#78350F;color:#FDE68A}
+html.dark .meta-estado.completada{background:#1E3A8A;color:#BFDBFE}
+.meta-dinero{font-size:clamp(1.05rem,4.5vw,1.35rem);font-weight:800;color:var(--texto);margin:12px 0 4px}
+.meta-dinero b{color:var(--primario)}
+.meta-card.meta-done .meta-dinero b{color:#10B981}
+.meta-progress{height:10px;border-radius:999px;background:var(--borde);overflow:hidden;margin:8px 0 4px}
+.meta-fill{height:100%;border-radius:999px;transition:width .5s ease}
+.meta-fill.stg-red{background:#EF4444}
+.meta-fill.stg-yellow{background:#F59E0B}
+.meta-fill.stg-orange{background:#F97316}
+.meta-fill.stg-blue{background:#3B82F6}
+.meta-fill.stg-green{background:#10B981}
+.meta-pct{text-align:right;font-size:.8rem;font-weight:800;color:var(--suave);margin-bottom:6px}
+.meta-detalle{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--suave);font-weight:600}
+.meta-detalle b{color:var(--texto)}
+.meta-card-actions{display:flex;gap:8px;margin-top:12px}
+.meta-card-actions button{flex:1;border:none;border-radius:12px;min-height:44px;font-size:.85rem;font-weight:700;cursor:pointer;transition:.15s ease;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.meta-card-actions button:active{transform:scale(.98)}
+.btn-meta-aporte{background:linear-gradient(135deg,#10B981,#059669);color:#fff}
+.btn-meta-aporte:disabled{opacity:.5;cursor:not-allowed}
+.btn-edit-meta{background:#EEF2F7;color:var(--texto)}
+.btn-del-meta{background:#FEE2E2;color:var(--rojo)}
+html.dark .meta-card{background:#16213e}
+html.dark .meta-nombre{color:#E2E8F0}
+html.dark .meta-emoji{background:#0f3460}
+html.dark .meta-progress{background:#0f3460}
+html.dark .btn-edit-meta{background:#1a1a2e;color:#CBD5E1}
+html.dark .btn-del-meta{background:#3F1D1D;color:#F87171}
+.metas-empty{text-align:center;color:var(--suave);padding:36px 16px;font-style:italic}
+.meta-estimado{margin-top:2px;padding:10px 12px;border-radius:12px;background:#F1F5F9;border:1px dashed var(--borde);font-size:.82rem;font-weight:600;color:var(--suave);grid-column:1 / -1;min-height:20px}
+html.dark .meta-estimado{background:#1a1a2e;border-color:var(--borde);color:#CBD5E1}
+@media(max-width:767px){
+  .meta-card-actions button{font-size:.8rem;padding:0 4px}
+}
+/* Proyección */
+.chart-box.meta-chart{height:170px}
+.proy-nota{font-size:.82rem;color:var(--suave);font-weight:600}
+html.dark .proy-nota{color:#94a3b8}
+/* Celebración de meta completada */
+.celebra-overlay{position:fixed;inset:0;z-index:1100;pointer-events:none;display:none}
+.celebra-overlay.open{display:block}
+.celebra-card{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:20px;padding:26px 36px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.3);animation:celebraPop .55s cubic-bezier(.2,1.4,.4,1) forwards;width:min(320px,86vw)}
+.celebra-card .c-emoji{font-size:3.4rem;line-height:1;animation:celebraSpin .6s ease}
+.celebra-card p{margin:12px 0 0;font-weight:800;color:var(--texto);font-size:1.02rem}
+html.dark .celebra-card{background:#16213e}
+.confetti-piece{position:absolute;top:-24px;width:10px;height:16px;border-radius:2px;animation:confettiFall 2.4s ease-in forwards}
+@keyframes celebraPop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+@keyframes celebraSpin{0%{transform:rotate(0) scale(.5)}60%{transform:rotate(24deg) scale(1.25)}100%{transform:rotate(0) scale(1)}}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(115vh) rotate(760deg);opacity:.5}}
+
+/* ============= GASTOS FIJOS MENSUALES ============= */
+.gf-section{margin-bottom:16px}
+.gf-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.gf-section-head h2{margin:0!important;font-size:1.05rem}
+.gf-summary{margin-top:8px;font-size:.9rem;font-weight:600}
+.gf-add-btn{background:linear-gradient(135deg,#6B5B95,#8B7BB1);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:.85rem;font-weight:600;cursor:pointer;transition:.15s ease}
+.gf-add-btn:active{transform:scale(.97)}
+.gf-form{background:var(--card,#fff);border:1px solid var(--borde,#e5e7eb);border-radius:14px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:14px}
+.gf-form h3{margin:0 0 10px;font-size:.95rem}
+.gf-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gf-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gf-field{display:flex;flex-direction:column;gap:4px}
+.gf-field span{font-size:.75rem;color:var(--suave,#64748b);font-weight:600}
+.gf-field input,.gf-field select{border:1px solid var(--borde,#e5e7eb);background:var(--fondo,#f8fafc);border-radius:8px;padding:8px;font-size:.9rem;color:inherit;width:100%}
+.gf-field input:focus,.gf-field select:focus{outline:none;border-color:var(--primario,#6B5B95)}
+.gf-field input[type="number"]{text-align:left}
+.gf-check-row{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--suave,#64748b)}
+.gf-check-row input{width:auto}
+.gf-form-actions{display:flex;gap:8px;margin-top:12px}
+.gf-form-actions .btn{flex:1}
+.gf-list{background:var(--card,#fff);border:1px solid var(--borde,#e5e7eb);border-radius:14px;padding:8px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.gf-empty{color:var(--suave,#64748b);font-size:.9rem;text-align:center;padding:12px}
+.gf-item{display:flex;align-items:center;gap:12px;padding:10px 8px;border-bottom:1px solid var(--borde,#eef0f3);min-height:56px;transition:background .2s ease}
+.gf-item:last-child{border-bottom:none}
+.gf-item.gf-done{opacity:.55}
+.gf-check{width:26px;height:26px;min-width:26px;border:2px solid var(--suave,#94a3b8);border-radius:50%;background:transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:transparent;transition:all .2s ease;-webkit-user-select:none;user-select:none}
+.gf-item.gf-done .gf-check{background:#22c55e;border-color:#22c55e;color:#fff;transform:scale(1.08)}
+.gf-item.gf-overdue .gf-check{border-color:#ef4444}
+.gf-item.gf-overdue .gf-overdue-tag{color:#ef4444}
+.gf-body{flex:1;min-width:0}
+.gf-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.gf-nombre{font-weight:700;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gf-monto{font-weight:700;font-size:.92rem;color:var(--primario,#6B5B95);white-space:nowrap}
+.gf-sub{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;font-size:.74rem;color:var(--suave,#64748b)}
+.gf-badge{font-size:.68rem;padding:1px 7px;border-radius:20px;font-weight:600;background:rgba(107,91,149,.12);color:var(--primario,#6B5B95)}
+.gf-badge.deuda{background:rgba(239,68,68,.12);color:#ef4444}
+.gf-overdue-tag{font-weight:700}
+.gf-item-actions{display:flex;align-items:center;gap:6px;min-width:0}
+.gf-edit-btn{background:none;border:none;cursor:pointer;font-size:1rem;color:var(--suave,#64748b);padding:4px;border-radius:6px;transition:.15s ease}
+.gf-edit-btn:hover{background:rgba(107,91,149,.1)}
+.gf-del-btn{background:none;border:none;cursor:pointer;font-size:.95rem;color:#ef4444;padding:4px;border-radius:6px;transition:.15s ease}
+.gf-del-btn:hover{background:rgba(239,68,68,.1)}
+.gf-modal-select{width:100%;padding:8px;border-radius:8px;border:1px solid var(--borde,#e5e7eb);background:var(--fondo,#f8fafc);color:inherit;margin-top:4px}
+.gf-progress{height:8px;background:var(--borde,#e5e7eb);border-radius:8px;overflow:hidden;margin-top:8px}
+.gf-progress .bar{height:100%;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:8px;transition:width .3s ease}
+.gf-warn{color:#ef4444;font-weight:700}
+.gf-note{font-size:.8rem;color:var(--suave,#64748b);margin-top:6px;line-height:1.4}
+.gf-pend-list{margin-top:10px;list-style:none;padding:0;margin-left:0;display:flex;flex-direction:column;gap:6px}
+.gf-pend-list li{font-size:.82rem;color:var(--suave,#64748b);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.gf-pend-list li .gf-d1{font-weight:600;color:var(--texto,#1e293b)}
+.gf-pend-list li .gf-d2{color:#ef4444;font-weight:700}
+.gf-comprometido{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:.8rem;color:var(--suave,#64748b)}
+.gf-comprometido span{display:inline-flex;align-items:center;gap:4px}
+.gf-comprometido b{color:var(--texto,#1e293b)}
+.gf-resumen-card{background:var(--card,#fff);border:1px solid var(--borde,#e5e7eb);border-radius:14px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:14px}
+.gf-resumen-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:700;font-size:.95rem}
+.gf-resumen-count{font-size:.85rem;color:var(--suave,#64748b);margin-top:2px}
+.gf-deuda-cuota{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.78rem;color:var(--suave,#64748b);margin-top:6px}
+.gf-deuda-cuota b{color:var(--texto,#1e293b)}
+.gf-deuda-cuota .gf-d2{color:#ef4444;font-weight:700}
+.gf-deuda-cuota .gf-ok{color:#22c55e;font-weight:700}
+@media(max-width:767px){
+  .gf-cols{grid-template-columns:1fr}
+  .gf-form-grid{grid-template-columns:1fr}
 }
 
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:60;background:#fff;border-top:1px solid var(--borde);display:flex;height:64px;box-shadow:0 -4px 16px rgba(30,41,59,.08);padding-bottom:env(safe-area-inset-bottom)}
@@ -564,6 +694,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
     <button class="nav-tab" data-view="gastos">📝 Gastos</button>
     <button class="nav-tab" data-view="deudas">💳 Deudas</button>
     <button class="nav-tab" data-view="presupuesto">🎯 Presupuesto</button>
+    <button class="nav-tab" data-view="metas">🏦 Metas</button>
   </nav>
   <div class="topbar-actions">
     <span class="sync-indicator syncing" id="syncStatus" role="status" aria-live="polite">🔄 Sincronizando...</span>
@@ -577,6 +708,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
   <span class="view-dot" data-dot="gastos"></span>
   <span class="view-dot" data-dot="deudas"></span>
   <span class="view-dot" data-dot="presupuesto"></span>
+  <span class="view-dot" data-dot="metas"></span>
 </div>
 
 <div class="name-overlay" id="nameOverlay">
@@ -652,7 +784,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         <span class="icon">🎯</span>
         <div class="label">Ahorro neto</div>
         <div class="valor" id="resumenAhorroTotal">₲ 0</div>
-        <div class="sub">Ingresos − Gastos</div>
+        <div class="sub">Ingresos − Gastos − Aportes a metas</div>
       </div>
       <div class="kpi deuda">
         <span class="icon">💳</span>
@@ -696,12 +828,40 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
       <div class="chart-box tall"><canvas id="chartDebudasHor"></canvas></div>
     </div>
 
+    <div class="card" id="metasResumenCard" hidden>
+      <h2>🏦 Ahorro en metas</h2>
+      <div class="deudas-summary" style="margin-bottom:0">
+        <div class="card" style="margin:0">
+          <div class="deuda-mini"><span class="lbl">💰 Total ahorrado en metas</span><span class="val" id="kpiAhorroMetas">₲ 0</span></div>
+        </div>
+        <div class="card" style="margin:0">
+          <div class="deuda-mini"><span class="lbl">🎯 Metas activas</span><span class="val" id="kpiMetasActivas">0</span></div>
+        </div>
+        <div class="card" style="margin:0">
+          <div class="deuda-mini"><span class="lbl">💸 Aporte mensual comprometido</span><span class="val" id="kpiMetasAporte">₲ 0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gf-resumen-card" id="gfResumenCard">
+      <div class="gf-resumen-head">
+        <span>📋 Pendientes del mes</span>
+        <span id="gfResumenCount">0 de 0 pagados</span>
+      </div>
+      <div class="gf-comprometido" id="gfComprometido">
+        <span>🔄 Fijos pagados <b id="gfCompFijos">0 de 0</b></span>
+        <span>💳 Cuotas pagadas <b id="gfCompCuotas">0 de 0</b></span>
+        <span>💰 Total comprometido <b id="gfCompTotal">₲ 0</b></span>
+      </div>
+      <div class="gf-progress"><div class="bar" id="gfResumenBar" style="width:0%"></div></div>
+      <ul class="gf-pend-list" id="gfPendLista"></ul>
+    </div>
+
     <div class="card" id="gastosFijosCard">
       <h2>📆 Gastos por Tipo del Mes</h2>
       <div class="tipo-totals-grid">
-        <div class="tipo-total fijo"><span>🔄 Fijos mensuales este mes</span><b id="totFijosMensuales">₲ 0</b></div>
+        <div class="tipo-total fijo"><span>🔄 Fijos este mes</span><b id="totFijosMensuales">₲ 0</b></div>
         <div class="tipo-total variable"><span>📊 Variables este mes</span><b id="totVariables">₲ 0</b></div>
-        <div class="tipo-total anual"><span>📅 Anuales este mes</span><b id="totAnuales">₲ 0</b></div>
         <div class="tipo-total unico"><span>☝️ Únicos este mes</span><b id="totUnicos">₲ 0</b></div>
       </div>
       <ul class="alerts-list" id="gastosFijosLista"></ul>
@@ -841,9 +1001,8 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         </label>
         <label class="field"><span>🗂️ Tipo de gasto</span>
           <select id="gTipo" required>
-            <option value="fijo-mensual">🔄 Fijo mensual</option>
+            <option value="fijo">🔄 Fijo</option>
             <option value="variable">📊 Variable</option>
-            <option value="anual">📅 Anual</option>
             <option value="unico">☝️ Único</option>
           </select>
         </label>
@@ -853,7 +1012,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         <label class="field"><span>🧮 Categoría</span>
           <select id="gCategoria">
             <option>Vivienda</option><option>Alimentación</option><option>Transporte</option>
-            <option>Servicios</option><option>Salud</option><option value="Deudas">Deudas 💳</option><option value="Préstamos">Préstamos</option>
+            <option>Servicios</option><option>Salud</option><option>Deudas</option>
             <option>Ocio</option><option>Educación</option><option>Ropa</option>
             <option>Ahorro</option><option>Otros</option>
           </select>
@@ -869,73 +1028,6 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
             <option>Transferencia</option>
           </select>
         </label>
-        <div class="cuotas-section" id="gFijoPanel">
-          <div class="toggle-row">
-            <span class="toggle-label">🔁 ¿Este gasto tiene cuotas?</span>
-            <label class="switch" title="¿Tiene cuotas?">
-              <input type="checkbox" id="gTieneCuotas">
-              <span class="slider"></span>
-            </label>
-            <span class="switch-value" id="gTieneCuotasTxt">No</span>
-          </div>
-          <div class="cuotas-fields" id="gCuotasFields">
-            <label class="field"><span>🧮 Cuotas totales</span>
-              <input type="number" id="gCuotasTotales" min="1" step="1" inputmode="numeric" placeholder="Ej: 12">
-            </label>
-            <label class="field"><span>✅ Cuotas pagadas</span>
-              <input type="number" id="gCuotasPagadas" min="0" step="1" inputmode="numeric" placeholder="Ej: 3">
-            </label>
-            <label class="field"><span>⏳ Cuotas faltantes</span>
-              <div class="faltantes-val" id="gCuotasFaltantes">—</div>
-            </label>
-            <label class="field"><span>📆 Inicio de cuotas</span>
-              <input type="date" id="gFechaInicioCuotas">
-            </label>
-          </div>
-        </div>
-        <div class="deuda-section" id="gDeudaPanel">
-          <div class="toggle-row deuda-toggle">
-            <span class="toggle-label">💳 ¿Es un préstamo o deuda con saldo pendiente?</span>
-            <label class="switch" title="¿Deuda con saldo?">
-              <input type="checkbox" id="gEsDeuda">
-              <span class="slider"></span>
-            </label>
-            <span class="switch-value" id="gEsDeudaTxt">No</span>
-          </div>
-          <div class="deuda-fields" id="gDeudaFields">
-            <label class="field deuda-field"><span>💵 Saldo actual/pendiente (₲)</span>
-              <input type="number" id="gSaldoPendiente" min="0" step="1" inputmode="numeric" placeholder="Ej: 1.000.000">
-            </label>
-            <label class="field deuda-field"><span>📈 Tasa de interés anual (%)</span>
-              <input type="number" id="gTasaInteres" min="0" step="0.01" inputmode="decimal" placeholder="Ej: 18.50">
-            </label>
-            <label class="field deuda-field"><span>🏷️ Tipo de tasa</span>
-              <select id="gTipoTasa">
-                <option value="efectiva-anual">Efectiva Anual</option>
-                <option value="nominal-anual">Nominal Anual</option>
-                <option value="mensual">Mensual</option>
-              </select>
-            </label>
-            <label class="field deuda-field"><span>🔁 Cuota mensual (₲)</span>
-              <input type="number" id="gCuotaMensual" min="0" step="1" inputmode="numeric" placeholder="Ej: 250.000">
-            </label>
-            <label class="field deuda-field"><span>🏦 Entidad/Acreedor</span>
-              <input type="text" id="gEntidadAcreedor" maxlength="80" placeholder="Ej: Banco Itaú">
-            </label>
-            <label class="field deuda-field"><span>📅 Día de vencimiento de la cuota</span>
-              <input type="number" id="gDiaVencimiento" min="1" max="31" step="1" inputmode="numeric" placeholder="Ej: 10">
-            </label>
-            <label class="field deuda-field"><span>🧮 Cuotas totales</span>
-              <input type="number" id="gDeudaCuotasTotales" min="1" step="1" inputmode="numeric" placeholder="Ej: 12">
-            </label>
-            <label class="field deuda-field"><span>✅ Cuotas pagadas</span>
-              <input type="number" id="gDeudaCuotasPagadas" min="0" step="1" inputmode="numeric" placeholder="Ej: 3">
-            </label>
-            <label class="field deuda-field"><span>⏳ Cuotas faltantes</span>
-              <div class="faltantes-val" id="gDeudaCuotasFaltantes">—</div>
-            </label>
-          </div>
-        </div>
         <label class="field"><span>📝 Comentarios</span>
           <textarea id="gComentarios" placeholder="Opcional" maxlength="200"></textarea>
         </label>
@@ -946,6 +1038,53 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
       </div>
     </form>
 
+    <div class="gf-section" id="gfSection">
+      <div class="gf-section-head">
+        <div>
+          <h2>📋 Gastos fijos de <span id="gfMesTitulo"></span></h2>
+          <div class="gf-summary" id="gfMesResumen"></div>
+        </div>
+        <button type="button" class="gf-add-btn" id="gfBtnAbrirForm">➕ Agregar gasto fijo</button>
+      </div>
+      <div class="gf-list" id="gfLista"></div>
+      <form id="gfForm" class="gf-form" hidden novalidate>
+        <h3 id="gfFormTitulo">➕ Nuevo gasto fijo</h3>
+        <div class="gf-form-grid">
+          <label class="gf-field"><span>🏷️ Nombre</span>
+            <input type="text" id="gfNombre" placeholder="Ej: Alquiler" maxlength="80" required>
+          </label>
+          <label class="gf-field"><span>🧮 Categoría</span>
+            <select id="gfCategoria">
+              <option>Vivienda</option><option>Alimentación</option><option>Transporte</option>
+              <option>Servicios</option><option>Salud</option>
+              <option>Ocio</option><option>Educación</option><option>Ropa</option>
+              <option>Ahorro</option><option>Otros</option>
+            </select>
+          </label>
+          <label class="gf-field"><span>💵 Monto (₲)</span>
+            <input type="number" id="gfMonto" min="0" step="1" inputmode="numeric" placeholder="Ej: 250.000" required>
+          </label>
+          <label class="gf-field"><span>📅 Día de vencimiento (1-31)</span>
+            <input type="number" id="gfDiaVencimiento" min="1" max="31" step="1" inputmode="numeric" placeholder="Ej: 5" required>
+          </label>
+          <label class="gf-field"><span>💳 Método de pago</span>
+            <select id="gfMetodoPago">
+              <option>Efectivo</option><option>Débito</option><option>Crédito</option><option>Transferencia</option>
+            </select>
+          </label>
+          <label class="gf-field"><span>👤 Responsable</span>
+            <select id="gfPersona">
+              <option>Yo</option><option>Mi pareja</option><option>Ambos</option>
+            </select>
+          </label>
+        </div>
+        <div class="gf-form-actions">
+          <button type="submit" class="btn btn-expense" id="gfBtnSubmit">➕ Agregar</button>
+          <button type="button" class="btn btn-cancel" id="gfBtnCancelar" hidden>✕ Cancelar</button>
+        </div>
+      </form>
+    </div>
+
     <div class="card">
       <h2>📋 Historial de gastos</h2>
       <div class="filter-row">
@@ -955,21 +1094,10 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         <label>Tipo
           <select id="gastosTipo">
             <option value="">Todos</option>
-            <option value="fijo-mensual">🔄 Fijo mensual</option>
+            <option value="fijo">🔄 Fijo</option>
             <option value="variable">📊 Variable</option>
-            <option value="anual">📅 Anual</option>
             <option value="unico">☝️ Único</option>
           </select>
-        </label>
-        <label id="gastosCuotasWrap" hidden>Cuotas
-          <select id="gastosCuotas">
-            <option value="">Con o sin cuotas</option>
-            <option value="con">Con cuotas</option>
-            <option value="sin">Sin cuotas</option>
-          </select>
-        </label>
-        <label class="filter-check">Solo deudas activas
-          <input type="checkbox" id="gastosSoloDeudas">
         </label>
         <label>Mes
           <select id="gastosMes"></select>
@@ -987,7 +1115,6 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
               <th>Tipo</th>
               <th>Categoría</th>
               <th>Monto</th>
-              <th>Deuda</th>
               <th>Método</th>
               <th>Comentarios</th>
               <th>Acción</th>
@@ -1144,6 +1271,88 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
     </div>
   </section>
 
+  <!-- ===================== METAS ===================== -->
+  <section class="view" id="view-metas">
+    <div class="view-header metas">
+      <h1>🏦 Metas</h1>
+      <p>Objetivos de ahorro, aportes y proyección</p>
+    </div>
+
+    <div class="deudas-summary">
+      <div class="card">
+        <div class="deuda-mini"><span class="lbl">💰 Total ahorrado</span><span class="val" id="metasTotalAhorrado">₲ 0</span></div>
+      </div>
+      <div class="card">
+        <div class="deuda-mini"><span class="lbl">🎯 Metas activas</span><span class="val" id="metasActivasCount">0</span></div>
+      </div>
+      <div class="card">
+        <div class="deuda-mini"><span class="lbl">✅ Metas completadas</span><span class="val" id="metasCompletadasCount">0</span></div>
+      </div>
+      <div class="card">
+        <div class="deuda-mini"><span class="lbl">💸 Aporte mensual total</span><span class="val" id="metasAporteTotal">₲ 0</span></div>
+      </div>
+    </div>
+
+    <div class="deudas-filtros">
+      <div class="seg">
+        <input type="radio" name="metasFiltro" id="filtroMetasActivas">
+        <label for="filtroMetasActivas">🟢 Activas</label>
+        <input type="radio" name="metasFiltro" id="filtroMetasPausadas">
+        <label for="filtroMetasPausadas">⏸️ Pausadas</label>
+        <input type="radio" name="metasFiltro" id="filtroMetasCompletadas">
+        <label for="filtroMetasCompletadas">✅ Completadas</label>
+        <input type="radio" name="metasFiltro" id="filtroMetasTodas" checked>
+        <label for="filtroMetasTodas">📋 Todas</label>
+      </div>
+    </div>
+
+    <form id="mForm" class="card" novalidate>
+      <h2>➕ Nueva meta</h2>
+      <div class="form-grid">
+        <label class="field"><span>🏷️ Nombre de la meta</span>
+          <input type="text" id="mNombre" placeholder="Ej: Vacaciones 2027" required maxlength="80">
+        </label>
+        <label class="field"><span>📝 Descripción</span>
+          <input type="text" id="mDescripcion" placeholder="Opcional" maxlength="160">
+        </label>
+        <label class="field"><span>🏷️ Categoría</span>
+          <select id="mCategoriaMeta">
+            <option value="emergencia">🚨 Emergencia</option>
+            <option value="vacaciones">✈️ Vacaciones</option>
+            <option value="bienes">🚗 Bienes</option>
+            <option value="educacion">📚 Educación</option>
+            <option value="otros">📦 Otros</option>
+          </select>
+        </label>
+        <label class="field"><span>🎯 Monto objetivo (₲)</span>
+          <input type="number" id="mMontoObjetivo" min="0" step="1" inputmode="numeric" placeholder="Ej: 10.000.000" required>
+        </label>
+        <label class="field"><span>💸 Aporte mensual (₲)</span>
+          <input type="number" id="mAporteMensual" min="0" step="1" inputmode="numeric" placeholder="Ej: 500.000">
+        </label>
+        <label class="field"><span>📅 Fecha objetivo</span>
+          <input type="date" id="mFechaObjetivo">
+        </label>
+        <div class="meta-estimado" id="mEstimado">Completá el monto objetivo y el aporte mensual (o la fecha objetivo) para ver el tiempo estimado.</div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-expense" id="btnSubmitMeta">➕ Agregar Meta</button>
+        <button type="button" class="btn btn-cancel" id="btnCancelMeta" hidden>✕ Cancelar</button>
+      </div>
+    </form>
+
+    <div class="card">
+      <h2>🏦 Tus metas</h2>
+      <div id="metasCardsList"></div>
+    </div>
+
+    <div class="card">
+      <h2>📈 Proyección</h2>
+      <p class="proy-nota" id="proyMsg">Sin datos para proyectar.</p>
+      <div class="chart-box meta-chart"><canvas id="chartMetasProy" height="130"></canvas></div>
+    </div>
+  </section>
+
 </main>
 
 <nav class="bottom-nav" id="bottomNav">
@@ -1152,6 +1361,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
   <button data-view="gastos"><span class="ico">📝</span>Gastos</button>
   <button data-view="deudas"><span class="ico">💳</span>Deudas</button>
   <button data-view="presupuesto"><span class="ico">🎯</span>Presupuesto</button>
+  <button data-view="metas"><span class="ico">🏦</span>Metas</button>
 </nav>
 
 <div class="fab-wrap" id="fabWrap">
@@ -1200,12 +1410,29 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
   </div>
 </div>
 
+<div class="pago-overlay" id="aporteModal">
+  <div class="pago-card">
+    <button type="button" class="pago-x" id="aporteCerrar" aria-label="Cerrar">✕</button>
+    <h2>💰 Aportar a la meta</h2>
+    <p class="pago-sub">Se suma al ahorro de la meta y queda registrado como ahorro.</p>
+    <input type="hidden" id="aporteMetaId">
+    <label class="field"><span>🏦 Meta</span><input type="text" id="aporteMetaTxt" readonly></label>
+    <label class="field"><span>📅 Fecha</span><input type="date" id="aporteFecha"></label>
+    <label class="field"><span>💰 Monto del aporte (₲)</span><input type="number" id="aporteMonto" min="0" step="1" inputmode="numeric" placeholder="Ej: 200.000"></label>
+    <label class="field"><span>📝 Comentario</span><input type="text" id="aporteComentarios" maxlength="200" placeholder="Opcional"></label>
+    <div class="pago-acciones">
+      <button type="button" id="btnAporteCancelar">Cancelar</button>
+      <button type="button" id="btnAporteGuardar">💾 Guardar aporte</button>
+    </div>
+  </div>
+</div>
+
+<div class="celebra-overlay" id="celebraOverlay" aria-hidden="true"></div>
+
 <div id="toastContainer"></div>
 
 <script>
-const CATEGORIAS_GASTOS = ['Vivienda','Alimentación','Transporte','Servicios','Salud','Deudas','Préstamos','Ocio','Educación','Ropa','Ahorro','Otros'];
-const CATEGORIAS_DEUDA = ['Deudas','Préstamos'];
-function esCategoriaDeuda(c){ return CATEGORIAS_DEUDA.indexOf(c) > -1; }
+const CATEGORIAS_GASTOS = ['Vivienda','Alimentación','Transporte','Servicios','Salud','Deudas','Ocio','Educación','Ropa','Ahorro','Otros'];
 const CATEGORIAS_INGRESOS = ['Salario','Freelance','Otros ingresos'];
 const PERSONAS = ['Yo','Mi pareja'];
 const METODOS = ['Efectivo','Débito','Crédito','Transferencia'];
@@ -1278,6 +1505,8 @@ let unMaster = null;
 let unIng = null;
 let unGas = null;
 let unDeudas = null;
+let unMetas = null;
+let unGf = null;
 let listaIngresos = null;
 let listaGastos = null;
 let presupuestoDocIds = {};
@@ -1290,6 +1519,10 @@ CATEGORIAS_GASTOS.forEach(c => { DEFAULT_PRESUPUESTO[c] = 0; });
 let ingresos = [];
 let gastos = [];
 let deudas = [];
+let metas = [];
+let aportes = [];
+let gastosFijos = [];
+let gastosFijosPagos = [];
 let presupuesto = Object.assign({}, DEFAULT_PRESUPUESTO);
 
 let nombreUsuario = '';
@@ -1319,7 +1552,10 @@ function renderAll(){
   renderIngresos();
   renderGastos();
   renderDeudas();
+  renderMetas();
   renderPresupuesto();
+  renderGastosFijosList();
+  renderGastosFijosResumen();
   renderResumen();
   fillYearSelects();
 }
@@ -1337,6 +1573,8 @@ function tearDownFirestore(){
   if(unIng){ unIng(); unIng = null; }
   if(unGas){ unGas(); unGas = null; }
   if(unDeudas){ unDeudas(); unDeudas = null; }
+  if(unMetas){ unMetas(); unMetas = null; }
+  if(unGf){ unGf(); unGf = null; }
   if(typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length){
     try { firebase.app().delete(); } catch(e){}
   }
@@ -1348,7 +1586,7 @@ function tearDownFirestore(){
 /* -- Colección única "registros": tipo -> 'ingreso' | 'gasto' | 'presupuesto' -- */
 
 /* Migración automática de tipoGasto legado en Firestore a los nuevos valores */
-const LEGACY_TIPO_GASTO = { 'fijo': 'fijo-mensual', 'ocasional': 'unico', 'ocacional': 'unico' };
+const LEGACY_TIPO_GASTO = { 'fijo': 'fijo', 'fijo-mensual': 'fijo', 'anual': 'unico', 'ocasional': 'unico', 'ocacional': 'unico' };
 
 function normalizarTipoGasto(v){
   if(v && Object.prototype.hasOwnProperty.call(LEGACY_TIPO_GASTO, v)) return LEGACY_TIPO_GASTO[v];
@@ -1359,6 +1597,7 @@ function migrarTipoGastoLegacy(id, legacy){
   if(!db || !firestoreReady) return;
   const nuevo = LEGACY_TIPO_GASTO[legacy];
   if(!nuevo) return;
+  if(nuevo === legacy) return;
   db.collection('registros').doc(id).update({ tipoGasto: nuevo }).catch(() => {});
 }
 
@@ -1379,6 +1618,9 @@ function registrarRegistroLocal(d){
       presupuestoDocIds[x.categoria] = d.id;
     }
   }
+  else if(x.tipo === 'ahorro'){
+    aportes.push(x);
+  }
 }
 
 function watchFirestore(){
@@ -1387,6 +1629,7 @@ function watchFirestore(){
   unMaster = db.collection('registros').onSnapshot(snap => {
     ingresos = [];
     gastos = [];
+    aportes = [];
     presupuesto = Object.assign({}, DEFAULT_PRESUPUESTO);
     presupuestoDocIds = {};
     snap.docs.forEach(d => registrarRegistroLocal(d));
@@ -1403,6 +1646,20 @@ function watchFirestore(){
   unDeudas = db.collection('deudas').onSnapshot(snap => {
     deudas = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
     renderDeudas();
+  }, snapError);
+
+  /* Colección "metas": objetivos de ahorro. */
+  unMetas = db.collection('metas').onSnapshot(snap => {
+    metas = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    renderMetas();
+  }, snapError);
+
+  /* Colección "gastos_fijos": pagos recurrentes precargados. */
+  unGf = db.collection('gastos_fijos').onSnapshot(snap => {
+    gastosFijos = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    gastosFijosPagos = loadPagosGastosFijos();
+    renderGastosFijosList();
+    renderGastosFijosResumen();
   }, snapError);
 }
 
@@ -1489,28 +1746,18 @@ function addIngresoRec(rec){
 
 function addGastoRec(rec){
   if(!firestoreReady || !db) return Promise.resolve();
-  const tiene = rec.tieneCuotas === true;
-  const tot = tiene ? (Number(rec.cuotasTotales)||0) : null;
-  const pag = tiene ? (Number(rec.cuotasPagadas)||0) : null;
-  return db.collection('registros').add({
+  const doc = {
     tipo: 'gasto', fecha: rec.fecha, descripcion: rec.descripcion, categoria: rec.categoria,
     monto: rec.monto, metodoPago: rec.metodoPago, comentarios: rec.comentarios,
     persona: rec.persona || getNombreUsuario(), uid: rec.id,
     creadoPor: getNombreUsuario(), timestamp: tsField(),
-    tipoGasto: rec.tipoGasto || 'unico',
-    tieneCuotas: tiene,
-    cuotasTotales: tot,
-    cuotasPagadas: pag,
-    cuotasFaltantes: tiene ? Math.max(tot - pag, 0) : null,
-    fechaInicioCuotas: tiene ? (rec.fechaInicioCuotas || null) : null,
-    esDeudaConSaldo: rec.esDeudaConSaldo === true,
-    saldoPendiente: rec.esDeudaConSaldo ? (Number(rec.saldoPendiente) || 0) : null,
-    tasaInteres: rec.esDeudaConSaldo ? (Number(rec.tasaInteres) || 0) : null,
-    tipoTasa: rec.esDeudaConSaldo ? (rec.tipoTasa || 'efectiva-anual') : null,
-    cuotaMensual: rec.esDeudaConSaldo ? (Number(rec.cuotaMensual) || 0) : null,
-    entidadAcreedor: rec.esDeudaConSaldo ? (rec.entidadAcreedor || null) : null,
-    diaVencimiento: rec.esDeudaConSaldo ? (Number(rec.diaVencimiento) || null) : null
-  });
+    tipoGasto: rec.tipoGasto || 'unico'
+  };
+  if(rec.esGastoFijo !== undefined) doc.esGastoFijo = rec.esGastoFijo;
+  if(rec.gastoFijoId !== undefined) doc.gastoFijoId = rec.gastoFijoId;
+  if(rec.esDeuda === true) doc.esDeuda = true;
+  if(rec.deudaId) doc.deudaId = rec.deudaId;
+  return db.collection('registros').add(doc);
 }
 
 function updateRecord(id, cambios){
@@ -1596,7 +1843,7 @@ function vibrar(p){
   try { if(navigator.vibrate && typeof navigator.vibrate === 'function') navigator.vibrate(p); } catch(e){}
 }
 
-const VIEWS = ['resumen','ingresos','gastos','deudas','presupuesto'];
+const VIEWS = ['resumen','ingresos','gastos','deudas','presupuesto','metas'];
 let curView = 'resumen';
 
 function updateIndicator(v){
@@ -1815,53 +2062,18 @@ document.getElementById('ingresosTbody').addEventListener('click', e => {
 
 /* ------------------ GASTOS ------------------ */
 
-const TIPOS_GASTO = ['fijo-mensual','variable','anual','unico'];
-const TIPOS_CON_CUOTAS = ['fijo-mensual','anual'];
+const TIPOS_GASTO = ['fijo','variable','unico'];
 
-function esTipoRecurrente(v){ return v === 'fijo-mensual' || v === 'anual'; }
-
-function esTipoConCuotas(v){ return TIPOS_CON_CUOTAS.indexOf(v) > -1; }
+function esTipoRecurrente(v){ return v === 'fijo'; }
 
 function tipoInfo(t){
   if(TIPOS_GASTO.indexOf(t) < 0) t = 'unico';
   const map = {
-    'fijo-mensual': { txt: 'Fijo mensual', emoji: '🔄', cls: 'tipo-fijo' },
-    'variable':     { txt: 'Variable',     emoji: '📊', cls: 'tipo-variable' },
-    'anual':        { txt: 'Anual',        emoji: '📅', cls: 'tipo-anual' },
-    'unico':        { txt: 'Único',        emoji: '☝️', cls: 'tipo-unico' }
+    'fijo':     { txt: 'Fijo',  emoji: '🔄', cls: 'tipo-fijo' },
+    'variable': { txt: 'Variable', emoji: '📊', cls: 'tipo-variable' },
+    'unico':    { txt: 'Único', emoji: '☝️', cls: 'tipo-unico' }
   };
   return map[t];
-}
-
-function deudaActivasLista(){
-  return (gastos || []).filter(g => g.esDeudaConSaldo === true);
-}
-
-function formatTasa(g){
-  if(!(g && g.esDeudaConSaldo)) return '';
-  const t = Number(g.tasaInteres) || 0;
-  if(!(t > 0)) return '';
-  return t + '% ' + (g.tipoTasa === 'mensual' ? 'mensual' : 'anual');
-}
-
-function deudaInfo(g){
-  if(!g.esDeudaConSaldo){
-    return esCategoriaDeuda(g.categoria) ? '<span class="deuda-badge">Pago único</span>' : '<span class="deuda-badge">—</span>';
-  }
-  const saldo = Number(g.saldoPendiente) || 0;
-  const tasa = formatTasa(g);
-  const cuota = Number(g.cuotaMensual) || 0;
-  return '<span class="deuda-indicador">🔴</span> <span class="deuda-badge activa">Deuda activa</span>' +
-    '<div class="deuda-line"><b>Saldo: ' + formatPYG(saldo) + '</b></div>' +
-    (tasa ? '<div class="deuda-line">Tasa: ' + esc(tasa) + '</div>' : '') +
-    (cuota > 0 ? '<div class="deuda-line">Cuota: ' + formatPYG(cuota) + '/mes</div>' : '');
-}
-
-function interesesMensuales(g){
-  const saldo = Number(g.saldoPendiente) || 0;
-  const tasa = Number(g.tasaInteres) || 0;
-  if(saldo <= 0 || tasa <= 0) return 0;
-  return g.tipoTasa === 'mensual' ? (saldo * tasa / 100) : (saldo * tasa / 100 / 12);
 }
 
 document.getElementById('formGasto').addEventListener('submit', e => {
@@ -1871,25 +2083,6 @@ document.getElementById('formGasto').addEventListener('submit', e => {
   const monto = parseFloat(document.getElementById('gMonto').value);
   if(!(monto > 0)){ toast('Ingresa un monto válido', 'error'); return; }
   const gt = document.getElementById('gTipo').value;
-  const tieneCuotas = esTipoConCuotas(gt) && document.getElementById('gTieneCuotas').checked;
-  const totCuotas = Number(document.getElementById('gCuotasTotales').value) || 0;
-  const pagCuotas = Number(document.getElementById('gCuotasPagadas').value) || 0;
-  if(tieneCuotas){
-    if(!(totCuotas >= 1)){ toast('Ingresa el total de cuotas (mínimo 1)', 'error'); const elF = document.getElementById('gCuotasTotales'); if(elF) elF.focus(); return; }
-    if(!(pagCuotas >= 0) || pagCuotas > totCuotas){ toast('Las cuotas pagadas no pueden superar el total', 'error'); return; }
-  }
-  const esDeudaConSaldo = esCategoriaDeuda(document.getElementById('gCategoria').value) && document.getElementById('gEsDeuda').checked;
-  const saldoPend = Number(document.getElementById('gSaldoPendiente').value) || 0;
-  const diaVen = parseInt(document.getElementById('gDiaVencimiento').value, 10);
-  if(esDeudaConSaldo && !(saldoPend > 0)){
-    toast('Ingresa el saldo pendiente (obligatorio en deudas con saldo)', 'error');
-    const elS = document.getElementById('gSaldoPendiente'); if(elS) elS.focus();
-    return;
-  }
-  if(esDeudaConSaldo && diaVen && (diaVen < 1 || diaVen > 31)){
-    toast('El día de vencimiento debe estar entre 1 y 31', 'error');
-    return;
-  }
   const datos = {
     fecha: document.getElementById('gFecha').value,
     descripcion: document.getElementById('gDescripcion').value.trim(),
@@ -1898,19 +2091,7 @@ document.getElementById('formGasto').addEventListener('submit', e => {
     metodoPago: document.getElementById('gMetodo').value,
     comentarios: document.getElementById('gComentarios').value.trim(),
     persona: getNombreUsuario() || 'Yo',
-    tipoGasto: gt,
-    tieneCuotas: tieneCuotas,
-    cuotasTotales: tieneCuotas ? totCuotas : null,
-    cuotasPagadas: tieneCuotas ? pagCuotas : null,
-    cuotasFaltantes: tieneCuotas ? Math.max(totCuotas - pagCuotas, 0) : null,
-    fechaInicioCuotas: tieneCuotas ? (document.getElementById('gFechaInicioCuotas').value || null) : null,
-    esDeudaConSaldo: esDeudaConSaldo,
-    saldoPendiente: esDeudaConSaldo ? saldoPend : null,
-    tasaInteres: esDeudaConSaldo ? (Number(document.getElementById('gTasaInteres').value) || 0) : null,
-    tipoTasa: esDeudaConSaldo ? (document.getElementById('gTipoTasa').value || 'efectiva-anual') : null,
-    cuotaMensual: esDeudaConSaldo ? (Number(document.getElementById('gCuotaMensual').value) || 0) : null,
-    entidadAcreedor: esDeudaConSaldo ? (document.getElementById('gEntidadAcreedor').value.trim() || null) : null,
-    diaVencimiento: esDeudaConSaldo ? (diaVen || null) : null
+    tipoGasto: gt
   };
   if(editandoGasto){
     updateRecord(editandoGasto, datos).then(() => {
@@ -1927,8 +2108,6 @@ document.getElementById('formGasto').addEventListener('submit', e => {
     vibrar(50);
     form.reset();
     document.getElementById('gFecha').value = hoy();
-    aplicarVisibilidadCuotasGasto();
-    aplicarVisibilidadDeudaGasto();
     renderAll();
     const presCat = Number(presupuesto[nuevo.categoria] || 0);
     if(presCat > 0){
@@ -1946,119 +2125,21 @@ function cancelarEdicionGasto(){
   if(cancel) cancel.hidden = true;
   document.getElementById('formGasto').reset();
   document.getElementById('gFecha').value = hoy();
-  aplicarVisibilidadCuotasGasto();
-  aplicarVisibilidadDeudaGasto();
 }
 
 document.getElementById('btnCancelGasto').addEventListener('click', cancelarEdicionGasto);
 
-document.getElementById('gTipo').addEventListener('change', aplicarVisibilidadCuotasGasto);
-document.getElementById('gTieneCuotas').addEventListener('change', aplicarVisibilidadCuotasGasto);
-document.getElementById('gCategoria').addEventListener('change', aplicarVisibilidadDeudaGasto);
-document.getElementById('gEsDeuda').addEventListener('change', aplicarVisibilidadDeudaGasto);
-['gCuotasTotales','gCuotasPagadas'].forEach(id => {
-  const el = document.getElementById(id);
-  if(el){ el.addEventListener('input', recalcFaltantesCuotas); el.addEventListener('change', recalcFaltantesCuotas); }
-});
-['gCuotasTotales','gCuotasPagadas'].forEach(id => {
-  const el = document.getElementById(id);
-  if(el){ el.addEventListener('input', syncCuotasEspejo); el.addEventListener('change', syncCuotasEspejo); }
-});
-['gDeudaCuotasTotales','gDeudaCuotasPagadas'].forEach(id => {
-  const el = document.getElementById(id);
-  if(el){ el.addEventListener('input', syncCuotasEspejo); el.addEventListener('change', syncCuotasEspejo); }
-});
-document.getElementById('gastosSoloDeudas').addEventListener('change', renderGastos);
-document.getElementById('gastosTipo').addEventListener('change', () => {
-  const wrap = document.getElementById('gastosCuotasWrap');
-  const t = document.getElementById('gastosTipo').value;
-  const showCuotas = esTipoConCuotas(t);
-  if(wrap) wrap.hidden = !showCuotas;
-  if(!showCuotas) document.getElementById('gastosCuotas').value = '';
-  renderGastos();
-});
-document.getElementById('gastosCuotas').addEventListener('change', renderGastos);
-
-function aplicarVisibilidadCuotasGasto(){
-  const panel = document.getElementById('gFijoPanel');
-  const esCuotas = esTipoConCuotas((document.getElementById('gTipo') || {}).value);
-  const tiene = !!(document.getElementById('gTieneCuotas') || {}).checked;
-  const fields = document.getElementById('gCuotasFields');
-  const txt = document.getElementById('gTieneCuotasTxt');
-  if(panel) panel.classList.toggle('open', esCuotas);
-  if(fields) fields.classList.toggle('open', esCuotas && tiene);
-  if(txt) txt.textContent = tiene ? 'Sí' : 'No';
-  recalcFaltantesCuotas();
-}
-
-function recalcFaltantesCuotas(){
-  const tot = Number((document.getElementById('gCuotasTotales') || {}).value) || 0;
-  const pag = Number((document.getElementById('gCuotasPagadas') || {}).value) || 0;
-  const el = document.getElementById('gCuotasFaltantes');
-  if(el) el.textContent = Math.max(tot - pag, 0) + ' cuota' + (Math.max(tot - pag, 0) === 1 ? '' : 's');
-}
-
-function aplicarVisibilidadDeudaGasto(){
-  const panel = document.getElementById('gDeudaPanel');
-  const esCat = esCategoriaDeuda((document.getElementById('gCategoria') || {}).value);
-  const esDeuda = !!((document.getElementById('gEsDeuda') || {}).checked);
-  const fields = document.getElementById('gDeudaFields');
-  const txt = document.getElementById('gEsDeudaTxt');
-  if(panel) panel.classList.toggle('open', esCat);
-  if(fields) fields.classList.toggle('open', esCat && esDeuda);
-  if(txt) txt.textContent = esDeuda ? 'Sí' : 'No';
-  recalcFaltantesDeuda();
-  recalcFaltantesCuotas();
-}
-
-function recalcFaltantesDeuda(){
-  const tot = Number((document.getElementById('gDeudaCuotasTotales') || {}).value) || 0;
-  const pag = Number((document.getElementById('gDeudaCuotasPagadas') || {}).value) || 0;
-  const el = document.getElementById('gDeudaCuotasFaltantes');
-  if(el) el.textContent = Math.max(tot - pag, 0) + ' cuota' + (Math.max(tot - pag, 0) === 1 ? '' : 's');
-}
-
-function syncCuotasEspejo(){
-  const cTot = document.getElementById('gCuotasTotales');
-  const cPag = document.getElementById('gCuotasPagadas');
-  const dTot = document.getElementById('gDeudaCuotasTotales');
-  const dPag = document.getElementById('gDeudaCuotasPagadas');
-  if(cTot && dTot){
-    if(dTot.value !== '') cTot.value = dTot.value;
-    else if(cTot.value !== '') dTot.value = cTot.value;
-  }
-  if(cPag && dPag){
-    if(dPag.value !== '') cPag.value = dPag.value;
-    else if(cPag.value !== '') dPag.value = cPag.value;
-  }
-  recalcFaltantesCuotas();
-  recalcFaltantesDeuda();
-}
+document.getElementById('gastosTipo').addEventListener('change', renderGastos);
 
 function iniciarEdicionGasto(g){
   editandoGasto = g.id;
   document.getElementById('gFecha').value = g.fecha || '';
   document.getElementById('gTipo').value = TIPOS_GASTO.indexOf(g.tipoGasto) > -1 ? g.tipoGasto : 'unico';
   document.getElementById('gDescripcion').value = g.descripcion || '';
-  document.getElementById('gCategoria').value = g.categoria || '';
+  document.getElementById('gCategoria').value = g.categoria && CATEGORIAS_GASTOS.indexOf(g.categoria) > -1 ? g.categoria : 'Otros';
   document.getElementById('gMonto').value = g.monto != null ? g.monto : '';
   document.getElementById('gMetodo').value = g.metodoPago || 'Efectivo';
-  document.getElementById('gTieneCuotas').checked = !!g.tieneCuotas;
-  document.getElementById('gCuotasTotales').value = g.cuotasTotales != null ? g.cuotasTotales : '';
-  document.getElementById('gCuotasPagadas').value = g.cuotasPagadas != null ? g.cuotasPagadas : '';
-  document.getElementById('gFechaInicioCuotas').value = g.fechaInicioCuotas || '';
-  document.getElementById('gEsDeuda').checked = !!g.esDeudaConSaldo;
-  document.getElementById('gSaldoPendiente').value = g.esDeudaConSaldo && g.saldoPendiente != null ? g.saldoPendiente : '';
-  document.getElementById('gTasaInteres').value = g.esDeudaConSaldo && g.tasaInteres != null ? g.tasaInteres : '';
-  document.getElementById('gTipoTasa').value = (['efectiva-anual','nominal-anual','mensual'].indexOf(g.tipoTasa) > -1) ? g.tipoTasa : 'efectiva-anual';
-  document.getElementById('gCuotaMensual').value = g.esDeudaConSaldo && g.cuotaMensual != null ? g.cuotaMensual : '';
-  document.getElementById('gEntidadAcreedor').value = g.entidadAcreedor || '';
-  document.getElementById('gDiaVencimiento').value = g.esDeudaConSaldo && g.diaVencimiento != null ? g.diaVencimiento : '';
-  document.getElementById('gDeudaCuotasTotales').value = g.cuotasTotales != null ? g.cuotasTotales : '';
-  document.getElementById('gDeudaCuotasPagadas').value = g.cuotasPagadas != null ? g.cuotasPagadas : '';
   document.getElementById('gComentarios').value = g.comentarios || '';
-  aplicarVisibilidadCuotasGasto();
-  aplicarVisibilidadDeudaGasto();
   document.getElementById('btnSubmitGasto').textContent = '💾 Guardar cambios';
   document.getElementById('btnCancelGasto').hidden = false;
   goView('gastos');
@@ -2069,12 +2150,10 @@ function filterGastos(){
   const cat = document.getElementById('gastosCat').value;
   const m = document.getElementById('gastosMes').value;
   const a = document.getElementById('gastosAño').value;
-  const soloDeudas = !!((document.getElementById('gastosSoloDeudas') || {}).checked);
   return gastos.filter(g => {
     const f = g.fecha || '';
     const mm = Number(f.slice(5,7));
     const aa = f.slice(0,4);
-    if(soloDeudas && g.esDeudaConSaldo !== true) return false;
     if(cat && g.categoria !== cat) return false;
     if(a && aa !== a) return false;
     if(m && mm !== Number(m)) return false;
@@ -2084,17 +2163,9 @@ function filterGastos(){
 
 function aplicarFiltroTipo(gastosLista){
   const t = (document.getElementById('gastosTipo') || {}).value;
-  const c = (document.getElementById('gastosCuotas') || {}).value;
-  const soloDeudas = !!((document.getElementById('gastosSoloDeudas') || {}).checked);
   let out = gastosLista;
-  if(soloDeudas){
-    out = out.filter(g => g.esDeudaConSaldo === true);
-  }
   if(t){
     out = out.filter(g => (g.tipoGasto || 'unico') === t);
-    if(c){
-      out = out.filter(g => (!!g.tieneCuotas) === (c === 'con'));
-    }
   }
   return out;
 }
@@ -2105,27 +2176,14 @@ function tipoBadge(g){
 }
 
 function cuotaInfo(g){
-  if(!esTipoConCuotas(g.tipoGasto)) return { badges:'', progress:'' };
-  const t = tipoInfo(g.tipoGasto);
-  const recurrente = '<span class="tag ' + t.cls + '">Recurrente</span>';
-  if(!g.tieneCuotas) return { badges: recurrente, progress:'' };
-  const tot = Number(g.cuotasTotales) || 0;
-  const pag = Number(g.cuotasPagadas) || 0;
-  if(tot < 1) return { badges: recurrente, progress:'' };
-  const fal = Math.max(tot - pag, 0);
-  const pct = Math.min(Math.round(pag / tot * 100), 100);
-  const cls = pct >= 100 ? 'ok' : (fal <= 2 ? 'warn' : 'cuota');
-  const badges = '<span class="tag ' + t.cls + '">Cuota ' + pag + '/' + tot + '</span>'
-    + (fal > 0 ? ' <span class="tag ' + t.cls + '">Faltan ' + fal + '</span>' : '');
-  const progress = '<div class="cuota-progress"><div class="bar"><div class="bar-fill ' + cls + '" style="width:' + pct + '%"></div></div><span class="cuota-pct">' + pct + '%</span></div>';
-  return { badges, progress };
+  return { badges:'', progress:'' };
 }
 
 function renderGastos(){
   const tbody = document.getElementById('gastosTbody');
   const lista = aplicarFiltroTipo(mostrarListaOFilter('gasto')).sort((x,y) => (y.fecha||'').localeCompare(x.fecha||'') || y.id.localeCompare(x.id));
   if(!lista.length){
-    tbody.innerHTML = '<tr><td colspan="9" class="empty">📭 Sin gastos registrados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">📭 Sin gastos registrados</td></tr>';
   } else {
     tbody.innerHTML = lista.map(g => {
       const ci = cuotaInfo(g);
@@ -2136,7 +2194,6 @@ function renderGastos(){
         <td data-label="Tipo">${tipoBadge(g)} ${ci.badges}</td>
         <td data-label="Categoría">${catBadge(g.categoria)}</td>
         <td data-label="Monto" class="monto gas">${formatPYG(g.monto)}${ci.progress}</td>
-        <td data-label="Deuda">${deudaInfo(g)}</td>
         <td data-label="Método de pago">${metodoTag(g.metodoPago)}</td>
         <td data-label="Comentarios" class="row-com">${esc(g.comentarios || '—')}</td>
         <td data-label="" class="row-action"><span class="row-actions">
@@ -2259,6 +2316,11 @@ function renderDeudas(){
     const pag = Number(d.cuotasPagadas) || 0;
     const dia = Number(d.diaVencimiento) || null;
     const pagable = est === 'activa' && act > 0;
+    const mesa = mesNombre(mesActualKey()).split(' ')[0];
+    const mk = mesActualKey();
+    const cuotaPagada = (gastos || []).some(r => r.tipo === 'gasto' && r.esDeuda === true && r.deudaId === d.id && (r.fecha || '').slice(0, 7) === mk);
+    const cuotaHtml = '<div class="gf-deuda-cuota"><span>Cuota de ' + mesa + ':</span>' +
+      (cuotaPagada ? '<span class="gf-ok">✅ Pagada</span>' : '<span>⭕ Pendiente</span>') + '</div>';
     return '<div class="deuda-card risk-' + riesgo + (est === 'pagada' ? ' est-pagada' : '') + '">' +
       '<div class="deuda-card-top">' +
         '<span><span class="deuda-card-nombre">' + esc(d.nombre || 'Sin nombre') + '</span>' +
@@ -2273,8 +2335,10 @@ function renderDeudas(){
         (tot > 0 ? '<span>Cuotas: <b>' + pag + ' de ' + tot + '</b></span>' : '') +
         (dia && dia >= 1 && dia <= 31 ? '<span>Vence: <b>día ' + dia + '</b></span>' : '') +
       '</div>' +
+      cuotaHtml +
       '<div class="deuda-card-actions">' +
         '<button type="button" class="btn-pago" data-pago="' + esc(d.id) + '"' + (pagable ? '' : ' disabled') + '>💰 Registrar pago</button>' +
+        '<button type="button" class="btn-pago-cuota" data-pago-cuota="' + esc(d.id) + '"' + (pagable && !cuotaPagada ? '' : ' disabled') + '>💰 Pagar cuota de ' + mesa + '</button>' +
         '<button type="button" class="btn-edit-deuda" data-edit-deuda="' + esc(d.id) + '" title="Editar">✏️</button>' +
         '<button type="button" class="btn-del-deuda" data-del-deuda="' + esc(d.id) + '" title="Eliminar">🗑️</button>' +
       '</div>' +
@@ -2379,6 +2443,28 @@ function iniciarEdicionDeuda(d){
 }
 
 /* Registrar un pago sobre una deuda: alta de gasto en "registros" + actualización de la deuda */
+function pagarCuotaDeuda(d){
+  if(!d){ toast('Deuda no encontrada', 'error'); return; }
+  const monto = Number(d.cuotaMensual) || Number(d.saldoActual) || 0;
+  if(!(monto > 0)){ toast('Configura la cuota mensual de la deuda', 'error'); return; }
+  const fecha = hoy();
+  const saldoAct = Number(d.saldoActual) || 0;
+  const nuevoSaldo = Math.max(saldoAct - monto, 0);
+  const cuotasPag = (Number(d.cuotasPagadas) || 0) + 1;
+  const nuevoEstado = nuevoSaldo <= 0 ? 'pagada' : 'activa';
+  addGastoRec({
+    id: newId(), fecha: fecha, descripcion: 'Cuota ' + (d.nombre || ''),
+    categoria: 'Deudas', monto: monto, metodoPago: 'Efectivo',
+    comentarios: '', persona: getNombreUsuario() || 'Yo',
+    tipoGasto: 'fijo', esDeuda: true, deudaId: d.id
+  }).then(() => updateDeudaRec(d.id, { saldoActual: nuevoSaldo, cuotasPagadas: cuotasPag, estado: nuevoEstado }))
+  .then(() => {
+    toast('Cuota pagada ✔');
+    vibrar(50);
+    renderAll();
+  });
+}
+
 function abrirPagoDeuda(id){
   pagoDeudaSel = null;
   const d = (deudas || []).find(x => x.id === id);
@@ -2418,10 +2504,10 @@ document.getElementById('btnPagoGuardar').addEventListener('click', () => {
   const cuotasPag = (Number(d.cuotasPagadas) || 0) + 1;
   const nuevoEstado = nuevoSaldo <= 0 ? 'pagada' : 'activa';
   addGastoRec({
-    id: newId(), fecha: fecha, descripcion: 'Pago deuda · ' + (d.nombre || ''),
+    id: newId(), fecha: fecha, descripcion: 'Cuota ' + (d.nombre || ''),
     categoria: 'Deudas', monto: monto, metodoPago: 'Efectivo',
     comentarios: comentarios, persona: getNombreUsuario() || 'Yo',
-    tipoGasto: 'unico', tieneCuotas: false
+    tipoGasto: 'fijo', esDeuda: true, deudaId: d.id
   }).then(() => updateDeudaRec(d.id, { saldoActual: nuevoSaldo, cuotasPagadas: cuotasPag, estado: nuevoEstado }))
   .then(() => {
     cerrarPagoDeuda();
@@ -2432,6 +2518,12 @@ document.getElementById('btnPagoGuardar').addEventListener('click', () => {
 });
 
 document.getElementById('deudasCardsList').addEventListener('click', e => {
+  const btnPagoCuota = e.target.closest('[data-pago-cuota]');
+  if(btnPagoCuota){
+    const d = (deudas || []).find(x => x.id === btnPagoCuota.dataset.pagoCuota);
+    if(d) pagarCuotaDeuda(d);
+    return;
+  }
   const btnPago = e.target.closest('[data-pago]');
   if(btnPago){ abrirPagoDeuda(btnPago.dataset.pago); return; }
   const btnEdit = e.target.closest('[data-edit-deuda]');
@@ -2455,6 +2547,777 @@ document.getElementById('deudasCardsList').addEventListener('click', e => {
   const el = document.getElementById(id);
   if(el) el.addEventListener('change', renderDeudas);
 });
+
+/* ------------------ METAS: OBJETIVOS DE AHORRO (colección "metas") ------------------ */
+
+const CATEGORIAS_META = [
+  { v:'emergencia', e:'🚨', n:'Emergencia' },
+  { v:'vacaciones', e:'✈️', n:'Vacaciones' },
+  { v:'bienes', e:'🚗', n:'Bienes' },
+  { v:'educacion', e:'📚', n:'Educación' },
+  { v:'otros', e:'📦', n:'Otros' }
+];
+const ESTADOS_META = ['activa','pausada','completada'];
+let editandoMeta = null;
+let aporteMetaSel = null;
+let chartMetasProy = null;
+
+function emojiMeta(c){
+  const e = CATEGORIAS_META.find(x => x.v === c);
+  return e ? e.e : '📦';
+}
+function nombreCategoriaMeta(c){
+  const e = CATEGORIAS_META.find(x => x.v === c);
+  return e ? e.n : 'Otros';
+}
+function estadoMetaFiltro(){
+  if(document.getElementById('filtroMetasActivas').checked) return 'activa';
+  if(document.getElementById('filtroMetasPausadas').checked) return 'pausada';
+  if(document.getElementById('filtroMetasCompletadas').checked) return 'completada';
+  return 'todas';
+}
+function metasActivasLista(){
+  return (metas || []).filter(m => m.estado === 'activa' || !m.estado);
+}
+function pctMeta(m){
+  const obj = Number(m.montoObjetivo) || 0;
+  const aho = Number(m.montoAhorrado) || 0;
+  if(obj <= 0) return 0;
+  return Math.min((aho / obj) * 100, 100);
+}
+function etapaMeta(pct){
+  if(pct >= 100) return 'green';
+  if(pct >= 75) return 'blue';
+  if(pct >= 50) return 'orange';
+  if(pct >= 25) return 'yellow';
+  return 'red';
+}
+function mesesRestantesMeta(m){
+  const aporte = Number(m.aporteMensual) || 0;
+  const obj = Number(m.montoObjetivo) || 0;
+  const aho = Number(m.montoAhorrado) || 0;
+  if(aporte <= 0) return null;
+  const falta = Math.max(obj - aho, 0);
+  if(falta <= 0) return 0;
+  return Math.ceil(falta / aporte);
+}
+function formatoFechaLarga(iso){
+  if(!iso) return '';
+  const partes = String(iso).split('-');
+  if(partes.length !== 3) return iso;
+  return partes[2] + '/' + partes[1] + '/' + partes[0];
+}
+function mesesEntre(a, b){
+  const da = new Date(a), db = new Date(b);
+  if(isNaN(da.getTime()) || isNaN(db.getTime())) return null;
+  let m = (db.getFullYear() - da.getFullYear()) * 12 + (db.getMonth() - da.getMonth());
+  if(db.getDate() < da.getDate()) m = Math.max(m - 1, 0);
+  return m;
+}
+function promedioAhorroMensual(){
+  const map = {};
+  [...(ingresos || []), ...(gastos || [])].forEach(r => {
+    const k = String(r.fecha || '').slice(0, 7);
+    if(!k) return;
+    map[k] = map[k] || { ing: 0, gas: 0 };
+    if(r.tipo === 'ingreso') map[k].ing += Number(r.monto) || 0;
+    else map[k].gas += Number(r.monto) || 0;
+  });
+  const keys = Object.keys(map);
+  if(!keys.length) return 0;
+  return keys.reduce((s, k) => s + (map[k].ing - map[k].gas), 0) / keys.length;
+}
+
+function renderMetas(){
+  const activas = metasActivasLista();
+  const completadas = (metas || []).filter(m => m.estado === 'completada');
+  const sAhorro = (metas || []).reduce((s, m) => s + (Number(m.montoAhorrado) || 0), 0);
+  const sAporte = activas.reduce((s, m) => s + (Number(m.aporteMensual) || 0), 0);
+
+  animarValor(document.getElementById('metasTotalAhorrado'), sAhorro, fmtPYG);
+  document.getElementById('metasActivasCount').textContent = String(activas.length);
+  document.getElementById('metasCompletadasCount').textContent = String(completadas.length);
+  animarValor(document.getElementById('metasAporteTotal'), sAporte, fmtPYG);
+
+  /* Card "Ahorro en metas" del Resumen */
+  const resCard = document.getElementById('metasResumenCard');
+  if(resCard) resCard.hidden = !(metas || []).length;
+  animarValor(document.getElementById('kpiAhorroMetas'), sAhorro, fmtPYG);
+  document.getElementById('kpiMetasActivas').textContent = String(activas.length);
+  animarValor(document.getElementById('kpiMetasAporte'), sAporte, fmtPYG);
+
+  const filtro = estadoMetaFiltro();
+  let lista;
+  if(filtro === 'activa') lista = activas;
+  else if(filtro === 'pausada') lista = (metas || []).filter(m => m.estado === 'pausada');
+  else if(filtro === 'completada') lista = completadas;
+  else lista = (metas || []).slice();
+
+  const cont = document.getElementById('metasCardsList');
+  if(!cont) return;
+  if(!lista.length){
+    cont.innerHTML = '<div class="metas-empty">📭 Sin metas' + (filtro === 'activa' ? ' activas' : filtro === 'pausada' ? ' pausadas' : filtro === 'completada' ? ' completadas' : ' registradas') + '</div>';
+  } else {
+    cont.innerHTML = lista.map(m => {
+      const obj = Number(m.montoObjetivo) || 0;
+      const aho = Number(m.montoAhorrado) || 0;
+      const pct = pctMeta(m);
+      const etapa = etapaMeta(pct);
+      const est = ESTADOS_META.indexOf(m.estado) > -1 ? m.estado : 'activa';
+      const emoji = emojiMeta(m.categoriaMeta);
+      const meses = mesesRestantesMeta(m);
+      const fObj = formatoFechaLarga(m.fechaObjetivo);
+      const badge = est === 'activa' ? 'Activa' : est === 'pausada' ? 'Pausada' : 'Completada';
+      const aportable = est !== 'completada';
+      return '<div class="meta-card stg-' + etapa + (est === 'completada' ? ' meta-done' : '') + '">' +
+        '<div class="meta-card-top">' +
+          '<span class="meta-nombre-wrap"><span class="meta-emoji">' + emoji + '</span>' +
+          '<span class="meta-txt"><span class="meta-nombre">' + esc(m.nombre || 'Sin nombre') + '</span>' +
+          (m.descripcion ? '<span class="meta-desc">' + esc(m.descripcion) + '</span>' : '') + '</span></span>' +
+          '<span class="meta-estado ' + est + '">' + badge + '</span>' +
+        '</div>' +
+        '<div class="meta-dinero"><b>' + formatPYG(aho) + '</b> / ' + formatPYG(obj) + '</div>' +
+        '<div class="meta-progress"><div class="meta-fill stg-' + etapa + '" style="width:' + Math.round(pct) + '%"></div></div>' +
+        '<div class="meta-pct">' + Math.round(pct) + '%</div>' +
+        '<div class="meta-detalle">' +
+          (Number(m.aporteMensual) > 0 ? '<span>💸 Aporte sugerido: <b>' + formatPYG(Number(m.aporteMensual)) + '/mes</b></span>' : '<span>💸 Sin aporte mensual</span>') +
+          (meses != null ? '<span>⏳ Faltan <b>' + meses + '</b> ' + (meses === 1 ? 'mes' : 'meses') + '</span>' : (est === 'completada' ? '<span>✅ Completada</span>' : '<span>⏳ Sin estimación</span>')) +
+          (fObj ? '<span>📅 Meta: <b>' + fObj + '</b></span>' : '') +
+        '</div>' +
+        '<div class="meta-card-actions">' +
+          '<button type="button" class="btn-meta-aporte" data-aporte="' + esc(m.id) + '"' + (aportable ? '' : ' disabled') + '>💰 Aportar</button>' +
+          '<button type="button" class="btn-edit-meta" data-edit-meta="' + esc(m.id) + '" title="Editar">✏️</button>' +
+          '<button type="button" class="btn-del-meta" data-del-meta="' + esc(m.id) + '" title="Eliminar">🗑️</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  renderProyeccion();
+}
+
+function renderProyeccion(){
+  const activas = metasActivasLista();
+  const faltaTotal = activas.reduce((s, m) => s + Math.max((Number(m.montoObjetivo) || 0) - (Number(m.montoAhorrado) || 0), 0), 0);
+  const aportNecesario = activas.reduce((s, m) => s + (Number(m.aporteMensual) || 0), 0);
+  const ahorroProm = Math.round(promedioAhorroMensual());
+
+  const msg = document.getElementById('proyMsg');
+  if(msg){
+    if(!activas.length){
+      msg.innerHTML = 'No hay metas activas. Creá una meta para ver tu proyección de ahorro.';
+      msg.className = 'proy-nota';
+    } else if(faltaTotal <= 0){
+      msg.innerHTML = '🎉 Todas tus metas activas ya están completas.';
+      msg.className = 'proy-nota';
+    } else if(ahorroProm <= 0){
+      msg.innerHTML = 'Tu ahorro mensual promedio es ₲ 0 o negativo. Aumentá tus ingresos o reducí gastos para cumplir tus metas de ahorro.';
+      msg.className = 'proy-nota';
+    } else {
+      const meses = Math.ceil(faltaTotal / ahorroProm);
+      msg.innerHTML = '💡 Con tu ahorro mensual promedio de <b>' + formatPYG(ahorroProm) + '</b>, completarás ' +
+        (activas.length === 1 ? 'tu meta' : 'tus <b>' + activas.length + '</b> metas activas') +
+        ' en aproximadamente <b>' + meses + '</b> ' + (meses === 1 ? 'mes' : 'meses') + '.';
+      msg.className = 'proy-nota';
+    }
+  }
+
+  if(chartMetasProy){ chartMetasProy.destroy(); chartMetasProy = null; }
+  const canvas = document.getElementById('chartMetasProy');
+  if(!canvas || typeof Chart === 'undefined') return;
+  let chartCard = canvas.parentElement || null;
+  if(canvas.closest){
+    const cl = canvas.closest('div.chart-box');
+    if(cl) chartCard = cl;
+  }
+  const hayDatos = (ahorroProm > 0 || aportNecesario > 0) && activas.length;
+  if(chartCard) chartCard.style.display = hayDatos ? '' : 'none';
+  if(!hayDatos) return;
+  const th = chartTheme();
+  chartMetasProy = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Ahorro mensual real', 'Aporte mensual necesario'],
+      datasets: [{ data: [ahorroProm, aportNecesario], backgroundColor: ['#3B82F6', '#F59E0B'], borderRadius: 6 }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => '₲ ' + Math.round(c.parsed.x).toLocaleString('es-PY') + '/mes' } } },
+      scales: { x: { beginAtZero: true, ticks: { callback: v => Math.round(v).toLocaleString('es-PY') }, grid: { color: th.grid } }, y: { grid: { display: false } } }
+    }
+  });
+}
+
+function addMetaRec(rec){
+  if(!firestoreReady || !db) return Promise.resolve();
+  return db.collection('metas').add({
+    nombre: rec.nombre || '', descripcion: rec.descripcion || '', uid: rec.id || null,
+    montoObjetivo: Number(rec.montoObjetivo) || 0, montoAhorrado: Number(rec.montoAhorrado) || 0,
+    aporteMensual: Number(rec.aporteMensual) || 0,
+    fechaInicio: rec.fechaInicio || hoy(), fechaObjetivo: rec.fechaObjetivo || null,
+    categoriaMeta: rec.categoriaMeta || 'otros', estado: rec.estado || 'activa',
+    creadoPor: getNombreUsuario(), timestamp: tsField()
+  });
+}
+function updateMetaRec(id, cambios){
+  if(!firestoreReady || !db) return Promise.resolve();
+  return db.collection('metas').doc(id).update(Object.assign({}, cambios, { timestamp: tsField() }));
+}
+function removeMetaRec(id){
+  if(!firestoreReady || !db) return Promise.resolve();
+  return db.collection('metas').doc(id).delete();
+}
+function addAhorroRec(rec){
+  if(!firestoreReady || !db) return Promise.resolve();
+  return db.collection('registros').add({
+    tipo: 'ahorro', fecha: rec.fecha, descripcion: rec.descripcion, categoria: 'Ahorro',
+    monto: Number(rec.monto) || 0, metodoPago: rec.metodoPago || 'Ahorro', comentarios: rec.comentarios || '',
+    persona: rec.persona || getNombreUsuario(), uid: rec.id,
+    creadoPor: getNombreUsuario(), timestamp: tsField()
+  });
+}
+
+function actualizarEstimadoMeta(){
+  const el = document.getElementById('mEstimado');
+  if(!el) return;
+  const obj = Number(document.getElementById('mMontoObjetivo').value) || 0;
+  const aporte = Number(document.getElementById('mAporteMensual').value) || 0;
+  const fObj = document.getElementById('mFechaObjetivo').value;
+  if(obj <= 0){
+    el.textContent = 'Completá el monto objetivo y el aporte mensual (o la fecha objetivo) para ver el tiempo estimado.';
+    return;
+  }
+  if(aporte > 0){
+    const meses = Math.ceil(obj / aporte);
+    el.textContent = '💸 Ahorrando ' + formatPYG(aporte) + '/mes completarás la meta en ' + meses + ' ' + (meses === 1 ? 'mes' : 'meses') + '.';
+  }
+  if(fObj){
+    const hoyD = new Date();
+    const mesesDisp = mesesEntre(hoyD.toISOString().slice(0,10), fObj);
+    if(mesesDisp != null){
+      if(mesesDisp < 0){
+        el.textContent = '⚠️ La fecha objetivo ya pasó. Ajustala o aumentá el objetivo.';
+      } else if(mesesDisp === 0){
+        el.textContent = '⚠️ La fecha objetivo es este mismo mes.';
+      } else {
+        const neces = Math.ceil(obj / mesesDisp);
+        el.textContent = (aporte > 0 ? '💸 Ahorrando ' + formatPYG(aporte) + '/mes: ' + Math.ceil(obj / aporte) + ' meses. ' : '') +
+          '📅 Para la fecha te hacen falta ' + mesesDisp + ' meses → ' + formatPYG(neces) + '/mes.';
+      }
+    }
+  }
+}
+
+document.getElementById('mForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const form = e.target;
+  if(!form.checkValidity()){ form.reportValidity(); return; }
+  const nombre = document.getElementById('mNombre').value.trim();
+  if(!nombre){ toast('Ingresa el nombre de la meta', 'error'); return; }
+  const objetivo = Number(document.getElementById('mMontoObjetivo').value) || 0;
+  if(!(objetivo > 0)){ toast('Ingresa un monto objetivo válido', 'error'); const elF = document.getElementById('mMontoObjetivo'); if(elF) elF.focus(); return; }
+  const fObj = document.getElementById('mFechaObjetivo').value;
+  if(fObj && String(fObj) < hoy()){
+    toast('La fecha objetivo no puede ser anterior a hoy', 'error');
+    return;
+  }
+  const datos = {
+    nombre: nombre,
+    descripcion: document.getElementById('mDescripcion').value.trim(),
+    montoObjetivo: objetivo,
+    aporteMensual: Number(document.getElementById('mAporteMensual').value) || 0,
+    fechaObjetivo: fObj || null,
+    categoriaMeta: document.getElementById('mCategoriaMeta').value || 'otros'
+  };
+  if(editandoMeta){
+    updateMetaRec(editandoMeta, datos).then(() => {
+      toast('Meta actualizada ✔');
+      cancelarEdicionMeta();
+      renderMetas();
+    });
+    return;
+  }
+  const nuevo = Object.assign({ id: newId(), fechaInicio: hoy(), estado: 'activa', montoAhorrado: 0 }, datos);
+  addMetaRec(nuevo).then(() => {
+    toast('Meta agregada ✔');
+    vibrar(50);
+    form.reset();
+    actualizarEstimadoMeta();
+    renderMetas();
+  });
+});
+
+function cancelarEdicionMeta(){
+  editandoMeta = null;
+  const btn = document.getElementById('btnSubmitMeta');
+  const cancel = document.getElementById('btnCancelMeta');
+  if(btn) btn.textContent = '➕ Agregar Meta';
+  if(cancel) cancel.hidden = true;
+  const form = document.getElementById('mForm');
+  if(form) form.reset();
+  actualizarEstimadoMeta();
+}
+
+document.getElementById('btnCancelMeta').addEventListener('click', cancelarEdicionMeta);
+
+function iniciarEdicionMeta(m){
+  editandoMeta = m.id;
+  document.getElementById('mNombre').value = m.nombre || '';
+  document.getElementById('mDescripcion').value = m.descripcion || '';
+  document.getElementById('mCategoriaMeta').value = (CATEGORIAS_META.some(c => c.v === m.categoriaMeta)) ? m.categoriaMeta : 'otros';
+  document.getElementById('mMontoObjetivo').value = m.montoObjetivo != null ? m.montoObjetivo : '';
+  document.getElementById('mAporteMensual').value = m.aporteMensual != null ? m.aporteMensual : '';
+  document.getElementById('mFechaObjetivo').value = m.fechaObjetivo || '';
+  document.getElementById('btnSubmitMeta').textContent = '💾 Guardar cambios';
+  document.getElementById('btnCancelMeta').hidden = false;
+  actualizarEstimadoMeta();
+  goView('metas');
+  setTimeout(() => { const el = document.getElementById('mNombre'); if(el) el.focus(); }, 150);
+}
+
+['mMontoObjetivo','mAporteMensual','mFechaObjetivo'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('input', actualizarEstimadoMeta);
+});
+
+/* --- Aporte a una meta --- */
+function abrirAporteMeta(id){
+  aporteMetaSel = null;
+  const m = (metas || []).find(x => x.id === id);
+  if(!m){ toast('Meta no encontrada', 'error'); return; }
+  aporteMetaSel = m;
+  document.getElementById('aporteMetaId').value = m.id;
+  document.getElementById('aporteMetaTxt').value = (m.nombre || '') + ' · ' + formatPYG(Number(m.montoAhorrado) || 0) + ' de ' + formatPYG(Number(m.montoObjetivo) || 0);
+  document.getElementById('aporteFecha').value = hoy();
+  document.getElementById('aporteMonto').value = Number(m.aporteMensual) || '';
+  document.getElementById('aporteComentarios').value = '';
+  const ov = document.getElementById('aporteModal');
+  if(ov) ov.classList.add('open');
+}
+function cerrarAporteMeta(){
+  aporteMetaSel = null;
+  const ov = document.getElementById('aporteModal');
+  if(ov) ov.classList.remove('open');
+}
+document.getElementById('btnAporteCancelar').addEventListener('click', cerrarAporteMeta);
+document.getElementById('aporteCerrar').addEventListener('click', cerrarAporteMeta);
+(function(){
+  const ov = document.getElementById('aporteModal');
+  if(ov) ov.addEventListener('click', e => { if(e.target === ov) cerrarAporteMeta(); });
+})();
+
+function celebrarMeta(){
+  const ov = document.getElementById('celebraOverlay');
+  if(!ov) return;
+  ov.innerHTML = '<div class="celebra-card"><div class="c-emoji">🎉</div><p>¡Meta completada!</p></div>';
+  const colores = ['#EF4444','#F59E0B','#F97316','#3B82F6','#10B981','#8B5CF6','#EC4899'];
+  for(let i = 0; i < 26; i++){
+    const c = document.createElement('span');
+    c.className = 'confetti-piece';
+    c.style.left = (1 + Math.random() * 98) + '%';
+    c.style.background = colores[i % colores.length];
+    c.style.width = (7 + Math.random() * 6) + 'px';
+    c.style.animationDelay = (Math.random() * 0.4) + 's';
+    ov.appendChild(c);
+  }
+  ov.classList.add('open');
+  setTimeout(() => { ov.classList.remove('open'); }, 2800);
+  setTimeout(() => { ov.innerHTML = ''; }, 3000);
+}
+
+document.getElementById('btnAporteGuardar').addEventListener('click', () => {
+  const m = (metas || []).find(x => x.id === document.getElementById('aporteMetaId').value);
+  if(!m){ toast('Meta no encontrada', 'error'); return; }
+  const monto = Number(document.getElementById('aporteMonto').value) || 0;
+  if(!(monto > 0)){ toast('Ingresa un monto de aporte válido', 'error'); return; }
+  const fecha = document.getElementById('aporteFecha').value || hoy();
+  const comentarios = document.getElementById('aporteComentarios').value.trim();
+  const nuevoAhorrado = (Number(m.montoAhorrado) || 0) + monto;
+  const objetivo = Number(m.montoObjetivo) || 0;
+  const completo = objetivo > 0 && nuevoAhorrado >= objetivo;
+  addAhorroRec({
+    id: newId(), fecha: fecha, descripcion: 'Aporte meta · ' + (m.nombre || ''),
+    monto: monto, comentarios: comentarios, categoria: 'Ahorro'
+  }).then(() => updateMetaRec(m.id, {
+    montoAhorrado: nuevoAhorrado,
+    estado: completo ? 'completada' : (ESTADOS_META.indexOf(m.estado) > -1 ? m.estado : 'activa')
+  })).then(() => {
+    cerrarAporteMeta();
+    toast(completo ? '🎉 ¡Meta completada!' : 'Aporte registrado ✔');
+    vibrar(50);
+    renderAll();
+    if(completo) setTimeout(celebrarMeta, 350);
+  });
+});
+
+document.getElementById('metasCardsList').addEventListener('click', e => {
+  const btnA = e.target.closest('[data-aporte]');
+  if(btnA){ abrirAporteMeta(btnA.dataset.aporte); return; }
+  const btnE = e.target.closest('[data-edit-meta]');
+  if(btnE){
+    const rec = (metas || []).find(x => x.id === btnE.dataset.editMeta);
+    if(rec) iniciarEdicionMeta(rec);
+    return;
+  }
+  const btnD = e.target.closest('[data-del-meta]');
+  if(!btnD) return;
+  confirmDelete('¿Eliminar esta meta? Esta acción no se puede deshacer.', () => {
+    removeMetaRec(btnD.dataset.delMeta).then(() => {
+      if(!firestoreReady) renderMetas();
+      toast('Meta eliminada', 'info');
+      vibrar(50);
+    });
+  });
+});
+
+['filtroMetasActivas','filtroMetasPausadas','filtroMetasCompletadas','filtroMetasTodas'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('change', renderMetas);
+});
+
+/* ================== GASTOS FIJOS MENSUALES ================== */
+
+const GF_PAGOS_KEY = 'gastos_fijos_pagos';
+const GF_MES_KEY = 'gastos_fijos_mes';
+let gfEditando = null;
+
+const EMPRESA = 'Py';
+
+function mesNombre(mk){
+  const d = new Date(mk + '-01');
+  return MESES[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function loadPagosGastosFijos(){
+  const mk = mesActualKey();
+  const raw = loadJSON(GF_PAGOS_KEY, {});
+  const mapa = {};
+  (raw[mk] || []).forEach(p => { mapa[p.gastoFijoId] = p; });
+  return mapa;
+}
+
+function savePagoGastoSingular(gastoFijoId, fechaPago){
+  const mk = mesActualKey();
+  const raw = loadJSON(GF_PAGOS_KEY, {});
+  raw[mk] = raw[mk] || [];
+  const idx = raw[mk].findIndex(p => p.gastoFijoId === gastoFijoId);
+  if(idx > -1) raw[mk].splice(idx, 1);
+  raw[mk].push({ gastoFijoId: gastoFijoId, mes: mk, pagado: true, fechaPago: fechaPago || tsField() });
+  saveJSON(GF_PAGOS_KEY, raw);
+  gastosFijosPagos = loadPagosGastosFijos();
+}
+
+function quitarPagoGastoFijo(gastoFijoId){
+  const mk = mesActualKey();
+  const raw = loadJSON(GF_PAGOS_KEY, {});
+  raw[mk] = (raw[mk] || []).filter(p => p.gastoFijoId !== gastoFijoId);
+  saveJSON(GF_PAGOS_KEY, raw);
+  gastosFijosPagos = loadPagosGastosFijos();
+}
+
+function estaPagoGastoFijo(id){
+  const p = gastosFijosPagos[id];
+  return !!(p && p.pagado);
+}
+
+function regPagoGastoFijo(id){
+  const p = gastosFijosPagos[id];
+  return p && p.pagado ? p : null;
+}
+
+function comprobarMesNuevo(){
+  const mk = mesActualKey();
+  const last = localStorage.getItem(GF_MES_KEY);
+  if(last && last !== mk){
+    const raw = loadJSON(GF_PAGOS_KEY, {});
+    raw[last] = [];
+    raw[mk] = raw[mk] || [];
+    saveJSON(GF_PAGOS_KEY, raw);
+  }
+  localStorage.setItem(GF_MES_KEY, mk);
+}
+
+function estadoGastoFijo(gf){
+  if(estaPagoGastoFijo(gf.id)) return 'done';
+  const dia = Number(gf.diaVencimiento) || 0;
+  const hoyN = new Date();
+  const hoyDia = hoyN.getDate();
+  const esMesActual = true;
+  if(esMesActual && dia >= 1 && dia <= 31 && hoyDia > dia) return 'overdue';
+  return 'pending';
+}
+
+function agregarGastoFijoRec(rec){
+  if(!firestoreReady || !db) return Promise.resolve();
+  return db.collection('gastos_fijos').add({
+    nombre: rec.nombre, categoria: rec.categoria, monto: Number(rec.monto) || 0,
+    persona: rec.persona || 'Yo', metodoPago: rec.metodoPago || 'Efectivo',
+    diaVencimiento: Number(rec.diaVencimiento) || 1,
+    activo: true, uid: rec.id || null, creadoPor: getNombreUsuario(), timestamp: tsField()
+  });
+}
+
+function updateGastoFijoRec(id, cambios){
+  if(!firestoreReady || !db) return Promise.resolve();
+  return db.collection('gastos_fijos').doc(id).update(Object.assign({}, cambios, { timestamp: tsField() }));
+}
+
+function removeGastoFijoRec(id){
+  if(!firestoreReady || !db) return Promise.resolve();
+  return db.collection('gastos_fijos').doc(id).delete();
+}
+
+function findRegistroGastoFijo(gfId, fecha){
+  const prefix = (fecha || hoy()).slice(0, 7);
+  return (gastos || []).find(r => r.tipo === 'gasto' && r.esGastoFijo === true && (r.gastoFijoId === gfId || r.uid === gfId) && (r.fecha || '').slice(0, 7) === prefix);
+}
+
+function registrarPagoGastoFijo(gf, fecha){
+  if(!firestoreReady || !db) return Promise.resolve();
+  const recId = newId();
+  const p = regPagoGastoFijo(gf.id);
+  const desc = p && p.fechaPagoMs ? null : null;
+  const dPromise = db.collection('registros').add({
+    tipo: 'gasto', fecha: fecha || hoy(), descripcion: gf.nombre || '',
+    categoria: gf.categoria || 'Otros', monto: Number(gf.monto) || 0,
+    metodoPago: gf.metodoPago || 'Efectivo', comentarios: 'Gasto fijo mensual',
+    persona: gf.persona || 'Yo', uid: recId,
+    creadoPor: getNombreUsuario(), timestamp: tsField(),
+    tipoGasto: 'fijo',
+    esGastoFijo: true, gastoFijoId: gf.id
+  });
+  dPromise.then(() => {
+    savePagoGastoSingular(gf.id, tsField());
+    renderAll();
+  });
+  return dPromise;
+}
+
+function revertirPagoGastoFijo(gf){
+  const p = regPagoGastoFijo(gf.id);
+  const reg = findRegistroGastoFijo(gf.id);
+  const ops = [];
+  if(reg && firestoreReady && db){
+    ops.push(db.collection('registros').doc(reg.id).delete());
+  }
+  quitarPagoGastoFijo(gf.id);
+  Promise.all(ops).then(() => { renderAll(); });
+}
+
+function renderGastosFijosList(){
+  const cont = document.getElementById('gfLista');
+  const titulo = document.getElementById('gfMesTitulo');
+  if(!cont) return;
+  const mk = mesActualKey();
+  if(titulo) titulo.textContent = mesNombre(mk);
+  const lista = (gastosFijos || []).filter(g => g.activo !== false);
+  const resumen = document.getElementById('gfMesResumen');
+  if(!lista.length){
+    cont.innerHTML = '<div class="gf-empty">📭 No hay gastos fijos precargados. Agrega el primero con “➕ Agregar gasto fijo”.</div>';
+    if(resumen) resumen.innerHTML = '';
+    return;
+  }
+  let pagadosCount = 0, vencidos = 0, totalMes = 0;
+  lista.forEach(g => {
+    const est = estadoGastoFijo(g);
+    if(est === 'done') pagadosCount++;
+    else if(est === 'overdue') vencidos++;
+    totalMes += Number(g.monto) || 0;
+  });
+  const pagadosMonto = lista.reduce((s, g) => s + (estaPagoGastoFijo(g.id) ? (Number(g.monto) || 0) : 0), 0);
+  if(resumen){
+    resumen.innerHTML = (lista.length === pagadosCount
+      ? '✅ Todos pagados (' + pagadosCount + ' de ' + lista.length + ')'
+      : (pagadosCount + ' de ' + lista.length + ' pagados'))
+      + (vencidos > 0 ? ' · <span class="gf-warn">🔴 ' + vencidos + ' vencido' + (vencidos === 1 ? '' : 's') + '</span>' : '');
+  }
+  const hoyDia = new Date().getDate();
+  cont.innerHTML = lista.map(g => {
+    const est = estadoGastoFijo(g);
+    const done = est === 'done';
+    const dia = Number(g.diaVencimiento) || 0;
+    const cls = 'gf-item' + (done ? ' gf-done' : '') + (est === 'overdue' ? ' gf-overdue' : '');
+    const check = done ? '✅' : '⭕';
+    const venceTxt = dia >= 1 && dia <= 31 ? 'Vence el ' + dia : '';
+    const overdueTxt = est === 'overdue' ? ' · <span class="gf-overdue-tag">🔴 Vencido</span>' : '';
+    return '<div class="' + cls + '" data-gf="' + esc(g.id) + '">' +
+      '<button type="button" class="gf-check" data-gf-check="' + esc(g.id) + '" title="' + (done ? 'Desmarcar como pagado' : 'Marcar como pagado') + '">' + check + '</button>' +
+      '<div class="gf-body">' +
+        '<div class="gf-top"><span class="gf-nombre">' + esc(g.nombre || '') + '</span><span class="gf-monto">' + formatPYG(g.monto) + '</span></div>' +
+        '<div class="gf-sub">' +
+          (venceTxt ? '<span>⏰ ' + venceTxt + '</span>' : '') +
+          '<span class="gf-badge">' + esc(g.categoria || '') + '</span>' +
+          '<span>👤 ' + esc(g.persona || 'Yo') + '</span>' +
+          overdueTxt +
+        '</div>' +
+      '</div>' +
+      '<div class="gf-item-actions">' +
+        '<button type="button" class="gf-edit-btn" data-gf-edit="' + esc(g.id) + '" title="Editar">✏️</button>' +
+        '<button type="button" class="gf-del-btn" data-gf-del="' + esc(g.id) + '" title="Eliminar">🗑️</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderGastosFijosResumen(){
+  const card = document.getElementById('gfResumenCard');
+  if(!card) return;
+  const lista = (gastosFijos || []).filter(g => g.activo !== false);
+  const total = lista.length;
+  const pagados = lista.filter(g => estaPagoGastoFijo(g.id)).length;
+  const pend = lista.filter(g => !estaPagoGastoFijo(g.id));
+  const vencidos = pend.filter(g => estadoGastoFijo(g) === 'overdue');
+  document.getElementById('gfResumenCount').textContent = pagados + ' de ' + total + ' pagados';
+  const bar = document.getElementById('gfResumenBar');
+  if(bar) bar.style.width = (total ? Math.round(pagados / total * 100) : 0) + '%';
+  const listaEl = document.getElementById('gfPendLista');
+  if(!pend.length){
+    listaEl.innerHTML = '<li style="justify-content:flex-start;color:#16a34a;font-weight:600">' + (total ? '✅ ¡Todos al día!' : 'Sin gastos fijos configurados.') + '</li>';
+  } else {
+    const orden = pend.slice().sort((a, b) => (Number(a.diaVencimiento) || 0) - (Number(b.diaVencimiento) || 0));
+    listaEl.innerHTML = orden.map(g => {
+      const dia = Number(g.diaVencimiento) || 0;
+      const overdue = estadoGastoFijo(g) === 'overdue';
+      return '<li><span class="gf-d1">' + esc(g.nombre || '') + ' · ' + formatPYG(g.monto) + '</span>' +
+        (overdue ? '<span class="gf-d2">🔴 Vencido (' + dia + ')</span>' : '<span>Vence el ' + dia + '</span>') + '</li>';
+    }).join('');
+  }
+  if(vencidos.length){
+    card.style.borderColor = '#ef4444';
+  } else {
+    card.style.borderColor = '';
+  }
+
+  const mk = mesActualKey();
+  const activas = deudasActivasCollection();
+  const cuotasActivas = activas.length;
+  const cuotasPagadas = activas.filter(d => (gastos || []).some(r => r.tipo === 'gasto' && r.esDeuda === true && r.deudaId === d.id && (r.fecha || '').slice(0, 7) === mk)).length;
+  const totalComprometido = lista.reduce((s, g) => s + (Number(g.monto) || 0), 0) + activas.reduce((s, d) => s + (Number(d.cuotaMensual) || 0), 0);
+  const elCf = document.getElementById('gfCompFijos');
+  if(elCf) elCf.textContent = pagados + ' de ' + total;
+  const elCc = document.getElementById('gfCompCuotas');
+  if(elCc) elCc.textContent = cuotasPagadas + ' de ' + cuotasActivas;
+  const elCt = document.getElementById('gfCompTotal');
+  if(elCt) elCt.textContent = formatPYG(totalComprometido);
+}
+
+function abrirFormGastoFijo(){
+  gfEditando = null;
+  const f = document.getElementById('gfForm');
+  if(f) f.hidden = false;
+  const t = document.getElementById('gfFormTitulo');
+  if(t) t.textContent = '➕ Nuevo gasto fijo';
+  document.getElementById('gfNombre').value = '';
+  document.getElementById('gfCategoria').value = 'Vivienda';
+  document.getElementById('gfMonto').value = '';
+  document.getElementById('gfDiaVencimiento').value = '';
+  document.getElementById('gfMetodoPago').value = 'Efectivo';
+  document.getElementById('gfPersona').value = 'Yo';
+  document.getElementById('gfBtnCancelar').hidden = true;
+  document.getElementById('gfBtnSubmit').textContent = '➕ Agregar';
+  const btn = document.getElementById('gfBtnAbrirForm');
+  if(btn && typeof btn.scrollIntoView === 'function') btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function iniciarEdicionGastoFijo(gf){
+  gfEditando = gf;
+  const f = document.getElementById('gfForm');
+  if(f) f.hidden = false;
+  const t = document.getElementById('gfFormTitulo');
+  if(t) t.textContent = '✏️ Editar gasto fijo';
+  document.getElementById('gfNombre').value = gf.nombre || '';
+  document.getElementById('gfCategoria').value = gf.categoria || 'Vivienda';
+  document.getElementById('gfMonto').value = Number(gf.monto) || '';
+  document.getElementById('gfDiaVencimiento').value = gf.diaVencimiento || '';
+  document.getElementById('gfMetodoPago').value = gf.metodoPago || 'Efectivo';
+  document.getElementById('gfPersona').value = gf.persona || 'Yo';
+  document.getElementById('gfBtnCancelar').hidden = false;
+  document.getElementById('gfBtnSubmit').textContent = '💾 Guardar cambios';
+  const btn = document.getElementById('gfBtnAbrirForm');
+  if(btn && typeof btn.scrollIntoView === 'function') btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function cancelarFormGastoFijo(){
+  gfEditando = null;
+  const f = document.getElementById('gfForm');
+  if(f) f.hidden = true;
+}
+
+document.getElementById('gfBtnAbrirForm').addEventListener('click', abrirFormGastoFijo);
+document.getElementById('gfBtnCancelar').addEventListener('click', cancelarFormGastoFijo);
+
+document.getElementById('gfForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const nombre = document.getElementById('gfNombre').value.trim();
+  const monto = Number(document.getElementById('gfMonto').value) || 0;
+  const dia = Number(document.getElementById('gfDiaVencimiento').value) || 1;
+  if(!nombre){ toast('Ingresa el nombre del gasto', 'error'); return; }
+  if(!(monto > 0)){ toast('Ingresa un monto válido', 'error'); return; }
+  if(!(dia >= 1 && dia <= 31)){ toast('El día de vencimiento debe estar entre 1 y 31', 'error'); return; }
+  const rec = {
+    nombre: nombre, categoria: document.getElementById('gfCategoria').value,
+    monto: monto, persona: document.getElementById('gfPersona').value,
+    metodoPago: document.getElementById('gfMetodoPago').value,
+    diaVencimiento: dia
+  };
+  if(gfEditando){
+    updateGastoFijoRec(gfEditando.id, rec).then(() => {
+      cancelarFormGastoFijo();
+      toast('Gasto fijo actualizado ✔');
+      vibrar(50);
+      renderAll();
+    });
+  } else {
+    agregarGastoFijoRec(rec).then(() => {
+      cancelarFormGastoFijo();
+      toast('Gasto fijo agregado ✔');
+      vibrar(50);
+      renderAll();
+    });
+  }
+});
+
+document.getElementById('gfLista').addEventListener('click', e => {
+  const check = e.target.closest('[data-gf-check]');
+  if(check){
+    const id = check.dataset.gfCheck;
+    const gf = (gastosFijos || []).find(x => x.id === id);
+    if(!gf) return;
+    togglePagoGastoFijo(gf);
+    return;
+  }
+  const ed = e.target.closest('[data-gf-edit]');
+  if(ed){
+    const gf = (gastosFijos || []).find(x => x.id === ed.dataset.gfEdit);
+    if(gf) iniciarEdicionGastoFijo(gf);
+    return;
+  }
+  const del = e.target.closest('[data-gf-del]');
+  if(del){
+    confirmDelete('¿Eliminar este gasto fijo?', () => {
+      removeGastoFijoRec(del.dataset.gfDel).then(() => {
+        renderAll();
+        toast('Gasto fijo eliminado', 'info');
+        vibrar(50);
+      });
+    });
+  }
+});
+
+function togglePagoGastoFijo(gf){
+  if(estaPagoGastoFijo(gf.id)){
+    revertirPagoGastoFijo(gf);
+    toast('Pago desmarcado', 'info');
+    vibrar(30);
+    return;
+  }
+  registrarPagoGastoFijo(gf, hoy()).then(() => {
+    toast('Gasto pagado ✔');
+    vibrar(40);
+  });
+}
+
+/* ================== FIN GASTOS FIJOS MENSUALES ================== */
 
 /* ------------------ PRESUPUESTO ------------------ */
 
@@ -2543,7 +3406,7 @@ function renderDeudasActivas(){
   if(!tbody) return;
   const fmtS = document.getElementById('deudasActivasTotalSaldo');
   const fmtC = document.getElementById('deudasActivasTotalCuotas');
-  const lista = deudaActivasLista().sort((a,b) => (Number(b.saldoPendiente)||0) - (Number(a.saldoPendiente)||0));
+  const lista = deudasActivasCollection().slice().sort((a,b) => (Number(b.saldoActual)||0) - (Number(a.saldoActual)||0));
   if(!lista.length){
     tbody.innerHTML = '<tr><td colspan="6" class="empty">🎉 Sin deudas activas</td></tr>';
     if(fmtS) fmtS.textContent = formatPYG(0);
@@ -2551,23 +3414,22 @@ function renderDeudasActivas(){
     return;
   }
   let sSaldo = 0, sCuota = 0;
-  tbody.innerHTML = lista.map(g => {
-    const saldo = Number(g.saldoPendiente) || 0;
-    const cuota = Number(g.cuotaMensual) || 0;
-    const tasa = formatTasa(g);
-    const tot = Number(g.cuotasTotales) || 0;
-    const pag = Number(g.cuotasPagadas) || 0;
-    const fal = tot > 0
-      ? Math.max(tot - pag, 0)
-      : (g.cuotasFaltantes != null && g.cuotasFaltantes !== '' ? Number(g.cuotasFaltantes) : null);
-    const dia = Number(g.diaVencimiento) || null;
+  tbody.innerHTML = lista.map(d => {
+    const saldo = Number(d.saldoActual) || 0;
+    const cuota = Number(d.cuotaMensual) || 0;
+    const tasa = d.tasaInteres && d.tipoTasa
+      ? d.tasaInteres + '% ' + (d.tipoTasa === 'mensual' ? 'mensual' : 'anual') : '—';
+    const tot = Number(d.cuotasTotales) || 0;
+    const pag = Number(d.cuotasPagadas) || 0;
+    const fal = tot > 0 ? Math.max(tot - pag, 0) : '—';
+    const dia = Number(d.diaVencimiento) || null;
     sSaldo += saldo; sCuota += cuota;
     return '<tr>' +
-      '<td>' + esc(g.entidadAcreedor || g.descripcion || '—') + '</td>' +
+      '<td>' + esc(d.entidad || d.nombre || '—') + '</td>' +
       '<td class="monto gas">' + formatPYG(saldo) + '</td>' +
-      '<td>' + (tasa ? esc(tasa) : '—') + '</td>' +
+      '<td>' + esc(tasa) + '</td>' +
       '<td class="monto gas">' + (cuota > 0 ? formatPYG(cuota) : '—') + '</td>' +
-      '<td>' + (fal != null ? fal : '—') + '</td>' +
+      '<td>' + (fal !== '—' ? fal : '—') + '</td>' +
       '<td>' + (dia ? 'Día ' + dia : '—') + '</td>' +
     '</tr>';
   }).join('');
@@ -2598,44 +3460,26 @@ function renderGastosFijos(){
   if(!recurrente.length){ card.hidden = true; return; }
   card.hidden = false;
 
-  let tFijo = 0, tVar = 0, tAnual = 0, tUnico = 0;
+  let tFijo = 0, tVar = 0, tUnico = 0;
   gal.forEach(g => {
     const m = Number(g.monto) || 0;
-    if(g.tipoGasto === 'fijo-mensual') tFijo += m;
+    if(g.tipoGasto === 'fijo') tFijo += m;
     else if(g.tipoGasto === 'variable') tVar += m;
-    else if(g.tipoGasto === 'anual') tAnual += m;
     else tUnico += m;
   });
   document.getElementById('totFijosMensuales').textContent = formatPYG(tFijo);
   document.getElementById('totVariables').textContent = formatPYG(tVar);
-  document.getElementById('totAnuales').textContent = formatPYG(tAnual);
   document.getElementById('totUnicos').textContent = formatPYG(tUnico);
 
   const lista = document.getElementById('gastosFijosLista');
-  let faltantesTotal = 0;
   const html = recurrente.map(g => {
     const t = tipoInfo(g.tipoGasto);
-    let badge = '', sub = '', near = false;
-    if(g.tieneCuotas && Number(g.cuotasTotales) > 0){
-      const tot = Number(g.cuotasTotales) || 0;
-      const pag = Number(g.cuotasPagadas) || 0;
-      const fal = Math.max(tot - pag, 0);
-      faltantesTotal += fal;
-      near = fal > 0 && fal <= 2;
-      const pct = Math.min(Math.round(pag / tot * 100), 100);
-      badge = '<span class="tag ' + t.cls + '">Cuota ' + pag + '/' + tot + '</span>'
-        + (fal > 0 ? ' <span class="tag ' + t.cls + '">Faltan ' + fal + '</span>' : '')
-        + (near ? ' <span class="tag ambar">⚠️ ¡Por terminar!</span>' : '');
-      sub = '<div class="cuota-progress small"><div class="bar"><div class="bar-fill ' + (near ? 'warn' : (pct >= 100 ? 'ok' : 'cuota')) + '" style="width:' + pct + '%"></div></div></div>';
-    }
-    return '<li class="' + (near ? 'near-end' : '') + '">' +
-      '<span class="txt"><b>' + esc(g.descripcion) + '</b> — ' + formatPYG(g.monto) + ' ' + badge + '</span>' + sub +
+    return '<li>' +
+      '<span class="txt"><b>' + esc(g.descripcion) + '</b> — ' + formatPYG(g.monto) + ' <span class="tag ' + t.cls + '">' + t.emoji + ' ' + t.txt + '</span></span>' +
     '</li>';
   }).join('');
   lista.innerHTML = html;
-  document.getElementById('gastosFijosTotal').innerHTML = faltantesTotal > 0
-    ? '⏳ Te quedan <b>' + faltantesTotal + '</b> cuota' + (faltantesTotal === 1 ? '' : 's') + ' por pagar este mes'
-    : (html ? '✅ Sin cuotas pendientes este mes' : '🔁 Sin cuotas pendientes todavía');
+  document.getElementById('gastosFijosTotal').innerHTML = '🔁 ' + recurrente.length + ' gasto' + (recurrente.length === 1 ? '' : 's') + ' fijo' + (recurrente.length === 1 ? '' : 's') + ' este mes';
 }
 
 /* ------------------ EXPORTAR A GOOGLE SHEETS ------------------ */
@@ -2650,10 +3494,11 @@ function exportarGoogleSheets(){
     filas.push([i.fecha || '', 'Ingreso', i.descripcion || '', i.persona || '', Number(i.monto) || 0, '', '', '', i.comentarios || '']);
   });
   (gastos || []).forEach(g => {
-    const cuotas = g.tieneCuotas && Number(g.cuotasTotales) > 0
-      ? (Number(g.cuotasPagadas) || 0) + '/' + (Number(g.cuotasTotales) || 0) : '';
     const tipoGasto = tipoInfo(g.tipoGasto).txt;
-    filas.push([g.fecha || '', 'Gasto', g.descripcion || '', g.categoria || '', Number(g.monto) || 0, g.metodoPago || '', tipoGasto, cuotas, g.comentarios || '']);
+    filas.push([g.fecha || '', 'Gasto', g.descripcion || '', g.categoria || '', Number(g.monto) || 0, g.metodoPago || '', tipoGasto, '', g.comentarios || '']);
+  });
+  (aportes || []).forEach(a => {
+    filas.push([a.fecha || '', 'Ahorro', a.descripcion || '', a.categoria || 'Ahorro', Number(a.monto) || 0, a.metodoPago || 'Ahorro', '', '', a.comentarios || '']);
   });
   if(!filas.length){
     toast('No hay datos para exportar', 'error');
@@ -2797,15 +3642,16 @@ function renderResumenTabla(agg){
 function renderDeudasResumen(){
   const grid = document.getElementById('deudasKpiGrid');
   const card = document.getElementById('deudasChartCard');
-  const lista = deudaActivasLista();
+  const lista = deudasActivasCollection();
   if(grid) grid.hidden = !lista.length;
   if(card) card.hidden = !lista.length;
 
   let sSaldo = 0, sCuotas = 0, sInteres = 0;
-  lista.forEach(g => {
-    sSaldo += Number(g.saldoPendiente) || 0;
-    sCuotas += Number(g.cuotaMensual) || 0;
-    sInteres += interesesMensuales(g);
+  lista.forEach(d => {
+    sSaldo += Number(d.saldoActual) || 0;
+    sCuotas += Number(d.cuotaMensual) || 0;
+    const tasa = Number(d.tasaInteres) || 0;
+    if(tasa > 0) sInteres += d.tipoTasa === 'mensual' ? (Number(d.saldoActual)||0) * tasa / 100 : (Number(d.saldoActual)||0) * tasa / 100 / 12;
   });
 
   animarValor(document.getElementById('kpiSaldoDeudas'), sSaldo, fmtPYG);
@@ -2831,9 +3677,9 @@ function renderDeudasResumen(){
   const canvas = document.getElementById('chartDebudasHor');
   if(!canvas || !lista.length || typeof Chart === 'undefined') return;
   const porEntidad = {};
-  lista.forEach(g => {
-    const k = (g.entidadAcreedor || g.descripcion || 'Sin entidad');
-    porEntidad[k] = (porEntidad[k] || 0) + (Number(g.saldoPendiente) || 0);
+  lista.forEach(d => {
+    const k = (d.entidad || d.nombre || 'Sin entidad');
+    porEntidad[k] = (porEntidad[k] || 0) + (Number(d.saldoActual) || 0);
   });
   const labels = Object.keys(porEntidad).sort((a,b) => porEntidad[b] - porEntidad[a]);
   const vals = labels.map(l => Math.round(porEntidad[l]));
@@ -2857,7 +3703,8 @@ function renderResumen(){
   const ins = filtrarPorPrefijo(ingresos, prefix);
   const tIng = total(ins);
   const tGas = total(gs);
-  const ahorro = tIng - tGas;
+  const tAporte = total(filtrarPorPrefijo(aportes, prefix));
+  const ahorro = tIng - tGas - tAporte;
 
   animarValor(document.getElementById('resumenIngresoTotal'), tIng, fmtPYG);
   animarValor(document.getElementById('resumenGastoTotal'), tGas, fmtPYG);
@@ -2869,8 +3716,9 @@ function renderResumen(){
   const agg = {};
   gs.forEach(g => { agg[g.categoria] = (agg[g.categoria] || 0) + (Number(g.monto)||0); });
 
-  /* KPI % deudas */
-  const deudasReal = agg['Deudas'] || 0;
+  /* KPI % deudas: solo desde cuotaMensual de deudas activas (colección "deudas") */
+  const activasDeuda = deudasActivasCollection();
+  const deudasReal = activasDeuda.reduce((s, d) => s + (Number(d.cuotaMensual) || 0), 0);
   const deudasPct = tIng > 0 ? (deudasReal / tIng) * 100 : 0;
   const ringEl = document.getElementById('deudasRing');
   if(ringEl){
@@ -2883,13 +3731,13 @@ function renderResumen(){
   if(dsub){
     if(deudasReal > 0 && deudasPct > 50){
       dsub.className = 'sub deuda-sub over';
-      dsub.textContent = '🔴 Más del 50% del ingreso va a deudas';
+      dsub.textContent = '🔴 Más del 50% del ingreso va a cuotas de deudas';
     } else if(deudasReal > 0 && deudasPct > 30){
       dsub.className = 'sub deuda-sub warn';
-      dsub.textContent = '🟡 ' + Math.round(deudasPct) + '% del ingreso destinado a deudas';
+      dsub.textContent = '🟡 ' + Math.round(deudasPct) + '% del ingreso destinado a cuotas de deudas';
     } else {
       dsub.className = 'sub';
-      dsub.textContent = deudasReal > 0 ? '🟢 ' + Math.round(deudasPct) + '% del ingreso destinado a deudas' : 'Sin gastos en Deudas';
+      dsub.textContent = deudasReal > 0 ? '🟢 ' + Math.round(deudasPct) + '% del ingreso destinado a cuotas de deudas' : 'Sin cuotas de deudas activas';
     }
   }
 
@@ -3314,11 +4162,13 @@ function setupNameOverlay(){
 document.getElementById('inFecha').value = hoy();
 document.getElementById('gFecha').value = hoy();
 document.getElementById('dFechaInicio').value = hoy();
+document.getElementById('aporteFecha').value = hoy();
 fillSelects();
-aplicarVisibilidadCuotasGasto();
-aplicarVisibilidadDeudaGasto();
 initSwipe();
 setupNameOverlay();
+comprobarMesNuevo();
+renderGastosFijosList();
+renderGastosFijosResumen();
 const cfgInicial = getFirebaseConfig();
 if(cfgInicial){
   initFirestore(cfgInicial);
