@@ -139,6 +139,7 @@ textarea{resize:vertical;min-height:88px}
 .btn-cancel{background:#EEF2F7;color:var(--texto)}
 .btn-cancel:hover{filter:brightness(.98);transform:none}
 .btn-sheets{background:linear-gradient(135deg,#0F9D58,#1EC286)}
+.btn-copy{background:var(--primario,#6B5B95);color:#fff}
 .export-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
 
 .kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}
@@ -559,6 +560,21 @@ html.dark .gf-badge.planilla{background:#334155;color:#CBD5E1}
 /* Modal de confirmación de pago de gasto fijo */
 .gf-modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;justify-content:center;z-index:200;padding:0 12px 20px}
 .gf-modal-backdrop[hidden]{display:none}
+
+/* ---- Modal Google Sheets ---- */
+.sheets-modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.6);display:flex;align-items:center;justify-content:center;z-index:1200;padding:20px;backdrop-filter:blur(3px);animation:backdropIn .25s ease}
+.sheets-modal-backdrop[hidden]{display:none}
+.sheets-modal{background:var(--card,#fff);border:1px solid var(--borde,#e5e7eb);border-radius:20px;box-shadow:0 12px 40px rgba(0,0,0,.3);padding:24px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto;text-align:center;animation:gfPop .22s ease}
+.sheets-modal-icon{width:64px;height:64px;border-radius:50%;background:#81B29A;color:#fff;font-size:1.9rem;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.sheets-modal h3{margin:0 0 8px;font-size:1.1rem;color:var(--texto,#1e293b)}
+.sheets-modal-sub{margin:0 0 14px;font-size:.9rem;color:var(--suave,#64748b);line-height:1.4}
+.sheets-pasos{list-style:none;margin:0 0 14px;padding:0;text-align:left}
+.sheets-pasos li{display:flex;gap:10px;align-items:flex-start;font-size:.92rem;color:var(--texto,#1e293b);padding:8px 0;border-bottom:1px solid var(--borde,#eef2f7)}
+.sheets-pasos li:last-child{border-bottom:none}
+.sheets-pasos li b{line-height:1.4}
+.sheets-modal-tip{margin:0 0 18px;padding:10px 12px;background:rgba(129,178,154,.14);border-radius:10px;font-size:.84rem;color:var(--texto,#1e293b);text-align:left}
+.sheets-modal-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.sheets-modal-actions .btn{min-height:44px}
 .gf-modal-card{background:var(--card,#fff);border:1px solid var(--borde,#e5e7eb);border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.25);padding:18px;width:100%;max-width:420px;margin:0 auto;animation:gfPop .22s ease}
 @keyframes gfPop{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
 .gf-modal-card h3{margin:0 0 12px;font-size:1rem}
@@ -822,6 +838,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
       <div class="export-actions">
         <button type="button" class="btn btn-cancel" id="btnMesActual">📅 Mes actual</button>
         <button type="button" class="btn btn-sheets" id="btnExportSheets">📤 Abrir en Google Sheets</button>
+        <button type="button" class="btn btn-copy" id="btnCopiarDatos">📋 Copiar datos para pegar</button>
       </div>
     </div>
 
@@ -1527,6 +1544,25 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
     <button class="close" id="iosTooltipClose" aria-label="Cerrar">✕</button>
   </div>
   <button class="install-btn" id="installBtn">📲 Instalar app</button>
+</div>
+
+<div class="sheets-modal-backdrop" id="sheetsModalBackdrop" hidden>
+  <div class="sheets-modal">
+    <div class="sheets-modal-icon">📋</div>
+    <h3>Datos copiados y Google Sheets abierto</h3>
+    <p class="sheets-modal-sub">Ya copiamos todos tus datos al portapapeles. Ahora pegalos en la hoja nueva:</p>
+    <ol class="sheets-pasos">
+      <li><b>1️⃣</b> En la hoja nueva, tocá la celda <b>A1</b></li>
+      <li><b>2️⃣</b> Presioná <b>Ctrl+V</b> (o <b>Cmd+V</b> en Mac)</li>
+      <li><b>3️⃣</b> En el importador, seleccioná <b>'Delimitador: Punto y coma (;)'</b></li>
+      <li><b>4️⃣</b> Tocá <b>'Importar datos'</b></li>
+    </ol>
+    <p class="sheets-modal-tip">💡 Tip: si los acentos se ven mal, asegurate de que el archivo esté en UTF-8.</p>
+    <div class="sheets-modal-actions">
+      <button type="button" class="btn btn-cancel" id="sheetsModalReopen">Abrir Google Sheets de nuevo</button>
+      <button type="button" class="btn btn-sheets" id="sheetsModalClose">Entendido</button>
+    </div>
+  </div>
 </div>
 
 <div class="sheet-backdrop" id="sheetBackdrop">
@@ -4084,7 +4120,8 @@ function csvField(v){
   return '"' + String(v == null ? '' : v).replace(/\r?\n/g, ' ').replace(/"/g, '""') + '"';
 }
 
-function exportarGoogleSheets(){
+/* Genera el CSV completo (UTF-8 con BOM, separador ;, salto de línea \n) */
+function generarCsvCompleto(){
   const filas = [];
   (ingresos || []).forEach(i => {
     filas.push([i.fecha || '', 'Ingreso', i.descripcion || '', i.persona || '', Number(i.monto) || 0, '', '', '', i.comentarios || '']);
@@ -4096,30 +4133,87 @@ function exportarGoogleSheets(){
   (aportes || []).forEach(a => {
     filas.push([a.fecha || '', 'Ahorro', a.descripcion || '', a.categoria || 'Ahorro', Number(a.monto) || 0, a.metodoPago || 'Ahorro', '', '', a.comentarios || '']);
   });
-  if(!filas.length){
+  if(!filas.length) return null;
+  filas.sort((a,b) => String(b[0]).localeCompare(String(a[0])));
+  const encabezados = ['Fecha','Tipo','Descripción','Persona/Categoría','Monto','Método de pago','Tipo Gasto','Cuotas','Comentarios'];
+  return '\uFEFF' + [encabezados].concat(filas).map(f => f.map(csvField).join(';')).join('\n');
+}
+
+/* Copia texto al portapapeles usando Clipboard API con fallback execCommand */
+function copiarAlPortapapeles(texto){
+  return new Promise((resolve, reject) => {
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(texto).then(resolve).catch(() => fallbackCopiar(texto, resolve, reject));
+    } else {
+      fallbackCopiar(texto, resolve, reject);
+    }
+  });
+}
+function fallbackCopiar(texto, resolve, reject){
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = texto;
+    ta.style.position = 'fixed';
+    ta.style.top = '-9999px';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    if(ok) resolve();
+    else reject(new Error('copy-failed'));
+  } catch(e){ reject(e); }
+}
+
+function abrirGoogleSheets(){
+  const csv = generarCsvCompleto();
+  if(!csv){
     toast('No hay datos para exportar', 'error');
     return;
   }
-  filas.sort((a,b) => String(b[0]).localeCompare(String(a[0])));
-  const encabezados = ['Fecha','Tipo','Descripción','Persona/Categoría','Monto','Método de pago','Tipo Gasto','Cuotas','Comentarios'];
-  const csv = '\uFEFF' + [encabezados].concat(filas).map(f => f.map(csvField).join(';')).join('\r\n');
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'Control_Financiero_' + hoy() + '.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1500);
-
-  window.open('https://docs.google.com/spreadsheets/u/0/create?usp=sheets_home', '_blank');
-  toast('CSV descargado. Importalo en Google Sheets 📊', 'info');
-  vibrar(50);
+  copiarAlPortapapeles(csv).then(() => {
+    window.open('https://sheets.new', '_blank');
+    toast('📋 Datos copiados al portapapeles', 'success');
+    const bd = document.getElementById('sheetsModalBackdrop');
+    if(bd) bd.hidden = false;
+    vibrar(50);
+  }).catch(() => {
+    toast('No se pudo copiar automáticamente. Usa “Copiar datos para pegar”.', 'error');
+    vibrar(25);
+  });
 }
 
-document.getElementById('btnExportSheets').addEventListener('click', exportarGoogleSheets);
+function copiarDatosParaPegar(){
+  const csv = generarCsvCompleto();
+  if(!csv){
+    toast('No hay datos para copiar', 'error');
+    return;
+  }
+  copiarAlPortapapeles(csv).then(() => {
+    toast('📋 Datos copiados al portapapeles', 'success');
+    vibrar(50);
+  }).catch(() => {
+    toast('No se pudo copiar. Revisá los permisos del portapapeles.', 'error');
+    vibrar(25);
+  });
+}
+
+document.getElementById('btnExportSheets').addEventListener('click', abrirGoogleSheets);
+document.getElementById('btnCopiarDatos').addEventListener('click', copiarDatosParaPegar);
+
+/* Modal Google Sheets */
+document.getElementById('sheetsModalClose').addEventListener('click', () => {
+  document.getElementById('sheetsModalBackdrop').hidden = true;
+});
+document.getElementById('sheetsModalReopen').addEventListener('click', () => {
+  window.open('https://sheets.new', '_blank');
+});
+document.getElementById('sheetsModalBackdrop').addEventListener('click', e => {
+  if(e.target === document.getElementById('sheetsModalBackdrop')){
+    document.getElementById('sheetsModalBackdrop').hidden = true;
+  }
+});
 
 function animarValor(el, val, fmt){
   if(!el) return;
