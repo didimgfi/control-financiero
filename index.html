@@ -507,6 +507,7 @@ html.dark .celebra-card{background:#16213e}
 .gf-deuda-cuota b{color:var(--texto,#1e293b)}
 .gf-deuda-cuota .gf-d2{color:#ef4444;font-weight:700}
 .gf-deuda-cuota .gf-ok{color:#22c55e;font-weight:700}
+.gf-deuda-cuota .gf-vencida{color:#ef4444;font-weight:700}
 
 /* Estados del checkbox de gasto fijo */
 .gf-check.gf-check-state-default{border-color:#cbd5e1;color:#cbd5e1}
@@ -2407,6 +2408,54 @@ function estadoDeudaFiltro(){
   return 'todas';
 }
 
+/* ------------------------------------------------------------------
+   LÓGICA DE CUOTA MENSUAL DE DEUDAS
+   Determina qué mes de cuota corresponde, si está pagado y si está vencido.
+------------------------------------------------------------------- */
+function mesesEntreFechas(a, b){
+  const da = new Date(a), db = new Date(b);
+  if(isNaN(da.getTime()) || isNaN(db.getTime())) return 0;
+  return (db.getFullYear() - da.getFullYear()) * 12 + (db.getMonth() - da.getMonth());
+}
+
+/* Mesa de la cuota actual según fechaInicio + cuotasPagadas.
+   Regresa { año, mes, key } de la cuota que toca registrar ahora. */
+function mesCuotaDeuda(d){
+  const inicio = d.fechaInicio ? new Date(d.fechaInicio) : new Date();
+  const pag = Number(d.cuotasPagadas) || 0;
+  if(isNaN(inicio.getTime())) inicio.setTime(new Date().getTime());
+  // La cuota que toca = mes de inicio + pag (si pag=0 → primer mes, pag=1 → segundo, etc.)
+  const dCuota = new Date(inicio.getFullYear(), inicio.getMonth() + pag, 1);
+  const key = dCuota.getFullYear() + '-' + String(dCuota.getMonth() + 1).padStart(2, '0');
+  return { key: key, año: dCuota.getFullYear(), mes: dCuota.getMonth() + 1 };
+}
+
+/* Estado de la cuota de la deuda en el mes dado:
+   id, mesKey, diaVencimiento, cuotaMensual, y si hay registro de pago.
+   Devuelve { cuotaKey, nombreMes, pagada, vencida, requiresDueCheck } */
+function estadoCuotaDeuda(d, mesKey){
+  const cuota = mesCuotaDeuda(d);
+  const pagada = (gastos || []).some(r => r.tipo === 'gasto' && r.esDeuda === true && r.deudaId === d.id &&
+    (r.fecha || '').slice(0, 7) === mesKey);
+  let vencida = false;
+  if(!pagada && mesKey === mesActualKey()){
+    const dia = Number(d.diaVencimiento);
+    if(dia >= 1 && dia <= 31 && new Date().getDate() > dia) vencida = true;
+  }
+  return { cuotaKey: cuota.key, pagada: pagada, vencida: vencida };
+}
+
+function nombreMesCuota(key){
+  const p = String(key).split('-');
+  return (MESES[Number(p[1]) - 1] || '') + ' ' + p[0];
+}
+
+/* Nombre corto del mes (solo el mes, sin año) para la cuota actual */
+function _nombreMesCorto(key){
+  const p = String(key).split('-');
+  return MESES[Number(p[1]) - 1] || '';
+}
+
 function renderDeudas(){
   const resSaldo = document.getElementById('deudasResumenSaldo');
   const resCuotas = document.getElementById('deudasResumenCuotas');
@@ -2469,10 +2518,25 @@ function renderDeudas(){
     const pag = Number(d.cuotasPagadas) || 0;
     const dia = Number(d.diaVencimiento) || null;
     const pagable = est === 'activa' && act > 0;
-    const mesa = mesNombre(mesActualKey()).split(' ')[0];
-    const cuotaPagada = (gastos || []).some(r => r.tipo === 'gasto' && r.esDeuda === true && r.deudaId === d.id && (r.fecha || '').slice(0, 7) === mk);
-    const cuotaHtml = '<div class="gf-deuda-cuota"><span>Cuota de ' + mesa + ':</span>' +
-      (cuotaPagada ? '<span class="gf-ok">✅ Pagada</span>' : '<span>⭕ Pendiente</span>') + '</div>';
+
+    /* Cuota actual del sistema y estado */
+    const mk = mesActualKey();
+    const cuotaInfoDeuda = estadoCuotaDeuda(d, mk);
+    const cuotaPagada = cuotaInfoDeuda.pagada;
+    const cuotaVencida = cuotaInfoDeuda.vencida;
+    const nombreMesCuota = _nombreMesCorto(mk);
+
+    const cuotaHtml = '<div class="gf-deuda-cuota"><span>Cuota de ' + nombreMesCuota + ':</span>' +
+      (cuotaPagada
+        ? '<span class="gf-ok">✅ Pagada</span>'
+        : (cuotaVencida
+          ? '<span class="gf-vencida">🔴 Vencida</span>'
+          : '<span>⭕ Pendiente</span>')) + '</div>';
+
+    const botonCuota = cuotaPagada
+      ? '<button type="button" class="btn-pago-cuota" disabled style="opacity:.55;background:#EEF2F7;color:#475569">✅ Cuota de ' + nombreMesCuota + ' pagada</button>'
+      : '<button type="button" class="btn-pago-cuota" data-pago-cuota="' + esc(d.id) + '"' + (pagable ? '' : ' disabled') + '>💰 Pagar cuota de ' + nombreMesCuota + '</button>';
+
     return '<div class="deuda-card risk-' + riesgo + (est === 'pagada' ? ' est-pagada' : '') + '">' +
       '<div class="deuda-card-top">' +
         '<span><span class="deuda-card-nombre">' + esc(d.nombre || 'Sin nombre') + '</span>' +
@@ -2490,7 +2554,7 @@ function renderDeudas(){
       cuotaHtml +
       '<div class="deuda-card-actions">' +
         '<button type="button" class="btn-pago" data-pago="' + esc(d.id) + '"' + (pagable ? '' : ' disabled') + '>💰 Registrar pago</button>' +
-        '<button type="button" class="btn-pago-cuota" data-pago-cuota="' + esc(d.id) + '"' + (pagable && !cuotaPagada ? '' : ' disabled') + '>💰 Pagar cuota de ' + mesa + '</button>' +
+        botonCuota +
         '<button type="button" class="btn-edit-deuda" data-edit-deuda="' + esc(d.id) + '" title="Editar">✏️</button>' +
         '<button type="button" class="btn-del-deuda" data-del-deuda="' + esc(d.id) + '" title="Eliminar">🗑️</button>' +
       '</div>' +
@@ -2609,7 +2673,10 @@ function pagarCuotaDeuda(d){
     categoria: 'Deudas', monto: monto, metodoPago: 'Efectivo',
     comentarios: '', persona: getNombreUsuario() || 'Yo',
     tipoGasto: 'fijo', esDeuda: true, deudaId: d.id
-  }).then(() => updateDeudaRec(d.id, { saldoActual: nuevoSaldo, cuotasPagadas: cuotasPag, estado: nuevoEstado }))
+  }).then(() => updateDeudaRec(d.id, {
+    saldoActual: nuevoSaldo, cuotasPagadas: cuotasPag, estado: nuevoEstado,
+    ultimaCuotaPagada: tsField(), mesUltimaCuota: mesActualKey()
+  }))
   .then(() => {
     toast('Cuota pagada ✔');
     vibrar(50);
@@ -2660,7 +2727,10 @@ document.getElementById('btnPagoGuardar').addEventListener('click', () => {
     categoria: 'Deudas', monto: monto, metodoPago: 'Efectivo',
     comentarios: comentarios, persona: getNombreUsuario() || 'Yo',
     tipoGasto: 'fijo', esDeuda: true, deudaId: d.id
-  }).then(() => updateDeudaRec(d.id, { saldoActual: nuevoSaldo, cuotasPagadas: cuotasPag, estado: nuevoEstado }))
+  }).then(() => updateDeudaRec(d.id, {
+    saldoActual: nuevoSaldo, cuotasPagadas: cuotasPag, estado: nuevoEstado,
+    ultimaCuotaPagada: tsField(), mesUltimaCuota: mesActualKey()
+  }))
   .then(() => {
     cerrarPagoDeuda();
     toast('Pago registrado ✔');
