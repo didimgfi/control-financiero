@@ -507,6 +507,24 @@ html.dark .celebra-card{background:#16213e}
 .gf-deuda-cuota b{color:var(--texto,#1e293b)}
 .gf-deuda-cuota .gf-d2{color:#ef4444;font-weight:700}
 .gf-deuda-cuota .gf-ok{color:#22c55e;font-weight:700}
+
+/* Estados del checkbox de gasto fijo */
+.gf-check.gf-check-state-default{border-color:#cbd5e1;color:#cbd5e1}
+.gf-check.gf-check-state-today{border-color:#f59e0b;color:#f59e0b}
+.gf-check.gf-check-state-overdue{border-color:#ef4444;color:#ef4444}
+html.dark .gf-check.gf-check-state-default{border-color:#64748b;color:#64748b}
+.gf-item.gf-done .gf-check.gf-check-state-paid{background:#22c55e;border-color:#22c55e;color:#fff;transform:scale(1.1)}
+.gf-overdue-tag.today{color:#f59e0b}
+
+/* Modal de confirmación de pago de gasto fijo */
+.gf-modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;justify-content:center;z-index:200;padding:0 12px 20px}
+.gf-modal-backdrop[hidden]{display:none}
+.gf-modal-card{background:var(--card,#fff);border:1px solid var(--borde,#e5e7eb);border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.25);padding:18px;width:100%;max-width:420px;margin:0 auto;animation:gfPop .22s ease}
+@keyframes gfPop{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.gf-modal-card h3{margin:0 0 12px;font-size:1rem}
+.gf-pago-nombre{display:block;font-weight:700;color:var(--texto,#1e293b);padding:6px 0 2px}
+html.dark .gf-modal-card{background:#1e293b;border-color:#334155}
+
 @media(max-width:767px){
   .gf-cols{grid-template-columns:1fr}
   .gf-form-grid{grid-template-columns:1fr}
@@ -1080,9 +1098,39 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         </div>
         <div class="gf-form-actions">
           <button type="submit" class="btn btn-expense" id="gfBtnSubmit">➕ Agregar</button>
+          <button type="button" class="btn btn-cancel" id="gfBtnPausar" hidden>⏸ Pausar (ocultar)</button>
           <button type="button" class="btn btn-cancel" id="gfBtnCancelar" hidden>✕ Cancelar</button>
         </div>
       </form>
+    </div>
+
+    <!-- Modal: confirmar pago de gasto fijo -->
+    <div class="gf-modal-backdrop" id="gfPagoBackdrop" hidden>
+      <div class="gf-modal-card" role="dialog" aria-modal="true" aria-labelledby="gfPagoTitulo">
+        <h3 id="gfPagoTitulo">💵 Registrar pago</h3>
+        <form id="gfPagoForm" novalidate>
+          <label class="gf-field"><span>🧾 Gasto fijo</span>
+            <strong id="gfPagoNombre" class="gf-pago-nombre"></strong>
+          </label>
+          <div class="gf-form-grid">
+            <label class="gf-field"><span>📅 Fecha de pago</span>
+              <input type="date" id="gfPagoFecha">
+            </label>
+            <label class="gf-field"><span>💵 Monto (₲)</span>
+              <input type="number" id="gfPagoMonto" min="0" step="1" inputmode="numeric">
+            </label>
+          </div>
+          <label class="gf-field"><span>💳 Método de pago</span>
+            <select id="gfPagoMetodo">
+              <option>Efectivo</option><option>Débito</option><option>Crédito</option><option>Transferencia</option>
+            </select>
+          </label>
+          <div class="gf-form-actions">
+            <button type="button" class="btn btn-cancel" id="gfPagoCancelar">Cancelar</button>
+            <button type="submit" class="btn btn-expense">Confirmar pago</button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <div class="card">
@@ -1229,6 +1277,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         <span class="chip tipo-fijo">🔄 Fijos mensuales + anuales: <b id="presFijosTotal">₲ 0</b></span>
         <span class="chip tipo-variable">📊 Variables/Únicos: <b id="presOcasionalesTotal">₲ 0</b></span>
         <span class="chip">📈 % Fijos: <b id="presPctFijos">0%</b></span>
+        <span class="chip" style="background:rgba(107,91,149,.12);color:var(--primario,#6B5B95)">💼 Compromisos fijos mensuales: <b id="presCompromisos">₲ 0</b></span>
       </div>
       <div class="table-wrap" style="max-height:600px">
         <table>
@@ -1507,6 +1556,7 @@ let unGas = null;
 let unDeudas = null;
 let unMetas = null;
 let unGf = null;
+let unGfPagos = null;
 let listaIngresos = null;
 let listaGastos = null;
 let presupuestoDocIds = {};
@@ -1523,6 +1573,7 @@ let metas = [];
 let aportes = [];
 let gastosFijos = [];
 let gastosFijosPagos = [];
+let gfMesKey = '';
 let presupuesto = Object.assign({}, DEFAULT_PRESUPUESTO);
 
 let nombreUsuario = '';
@@ -1575,6 +1626,7 @@ function tearDownFirestore(){
   if(unDeudas){ unDeudas(); unDeudas = null; }
   if(unMetas){ unMetas(); unMetas = null; }
   if(unGf){ unGf(); unGf = null; }
+  if(unGfPagos){ unGfPagos(); unGfPagos = null; }
   if(typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length){
     try { firebase.app().delete(); } catch(e){}
   }
@@ -1632,6 +1684,7 @@ function watchFirestore(){
   if(unDeudas){ unDeudas(); unDeudas = null; }
   if(unMetas){ unMetas(); unMetas = null; }
   if(unGf){ unGf(); unGf = null; }
+  if(unGfPagos){ unGfPagos(); unGfPagos = null; }
   /* Snapshot maestro: mantiene cachés (resumen, presupuesto, totales, años). */
   unMaster = db.collection('registros').onSnapshot(snap => {
     ingresos = [];
@@ -1661,10 +1714,16 @@ function watchFirestore(){
     renderMetas();
   }, snapError);
 
-  /* Colección "gastos_fijos": pagos recurrentes precargados. */
+  /* Colección "gastos_fijos": recordatorios de pagos recurrentes (no deudas). */
   unGf = db.collection('gastos_fijos').onSnapshot(snap => {
     gastosFijos = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
-    gastosFijosPagos = loadPagosGastosFijos();
+    renderGastosFijosList();
+    renderGastosFijosResumen();
+  }, snapError);
+
+  /* Colección "gastos_fijos_pagos": estado pagado por mes de cada gasto fijo. */
+  unGfPagos = db.collection('gastos_fijos_pagos').onSnapshot(snap => {
+    gastosFijosPagos = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
     renderGastosFijosList();
     renderGastosFijosResumen();
   }, snapError);
@@ -1730,7 +1789,10 @@ function initFirestore(cfg){
         ready = db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
       } catch(e){ /* ya habilitada en otra pestaña */ }
     }
-    ready.then(() => watchFirestore());
+    ready.then(() => {
+      watchFirestore();
+      migracion_agosto_a_septiembre_2026();
+    });
     return true;
   } catch(e){
     firestoreReady = false;
@@ -1738,6 +1800,75 @@ function initFirestore(cfg){
     showConfigModal();
     return false;
   }
+}
+
+/* ------------------------------------------------------------------
+   MIGRACIÓN AUTOMÁTICA (Ejecuta UNA vez): mueve los ingresos y gastos
+   del 26-31 de agosto 2026 al 01 de septiembre 2026 para cuadrar el
+   mes financiero. Solo afecta la colección "registros".
+------------------------------------------------------------------- */
+function migracion_agosto_a_septiembre_2026(){
+  const FLAG = 'migracion_agosto_completa_2026';
+  try {
+    if(localStorage.getItem(FLAG) === 'true'){
+      console.log('Migración ya ejecutada anteriormente.');
+      return;
+    }
+  } catch(e){}
+  // Ejecutar fuera del flujo principal para no bloquear la UI
+  (async () => {
+    try {
+      const dbF = firebase.firestore();
+      const inicio = '2026-08-26';
+      const fin = '2026-08-31';
+
+      const snapshot = await dbF.collection('registros')
+        .where('fecha', '>=', inicio)
+        .where('fecha', '<=', fin)
+        .get();
+
+      if(snapshot.empty){
+        console.log('No se encontraron registros para migrar.');
+        try { localStorage.setItem(FLAG, 'true'); } catch(e){}
+        return;
+      }
+
+      const docs = snapshot.docs;
+      let contador = 0;
+
+      // Firestore limita 500 operaciones por batch → procesar de 500 en 500
+      for(let i = 0; i < docs.length; i += 500){
+        const batch = dbF.batch();
+        const tramo = docs.slice(i, i + 500);
+        tramo.forEach(doc => {
+          const data = doc.data();
+          // Solo tipos ingreso/gasto
+          const tipo = data.tipo;
+          if(tipo !== 'ingreso' && tipo !== 'gasto') return;
+          const fechaOriginal = data.fecha;
+          const comentarioActual = data.comentarios || '';
+          const nuevoComentario = comentarioActual
+            ? comentarioActual + ' | Fecha real: ' + fechaOriginal
+            : 'Fecha real del movimiento: ' + fechaOriginal;
+          batch.update(doc.ref, {
+            fecha: '2026-09-01',
+            comentarios: nuevoComentario
+          });
+          contador++;
+        });
+        if(tramo.length) await batch.commit();
+      }
+
+      try { localStorage.setItem(FLAG, 'true'); } catch(e){}
+      console.log('Migración completada: ' + contador + ' registros movidos de agosto a septiembre.');
+      if(contador > 0){
+        toast('✅ ' + contador + ' registros movidos del 26-31/ago al 01/sep', 'success');
+        vibrar(50);
+      }
+    } catch(error){
+      console.error('Error en migración:', error);
+    }
+  })();
 }
 
 /* -- Escrituras: CRUD completo sobre "registros" (addDoc / updateDoc / deleteDoc) -- */
@@ -1950,8 +2081,8 @@ document.getElementById('btnMesActual').addEventListener('click', () => {
 document.getElementById('ingresosMes').addEventListener('change', () => { renderIngresos(); reiniciarQueriesFiltradas(); });
 document.getElementById('ingresosAño').addEventListener('change', () => { renderIngresos(); reiniciarQueriesFiltradas(); });
 document.getElementById('gastosCat').addEventListener('change', () => { renderGastos(); reiniciarQueriesFiltradas(); });
-document.getElementById('gastosMes').addEventListener('change', () => { renderGastos(); reiniciarQueriesFiltradas(); });
-document.getElementById('gastosAño').addEventListener('change', () => { renderGastos(); reiniciarQueriesFiltradas(); });
+document.getElementById('gastosMes').addEventListener('change', () => { renderGastos(); renderGastosFijosList(); renderGastosFijosResumen(); reiniciarQueriesFiltradas(); });
+document.getElementById('gastosAño').addEventListener('change', () => { renderGastos(); renderGastosFijosList(); renderGastosFijosResumen(); reiniciarQueriesFiltradas(); });
 
 /* ------------------ INGRESOS ------------------ */
 
@@ -2998,8 +3129,7 @@ document.getElementById('metasCardsList').addEventListener('click', e => {
 
 /* ================== GASTOS FIJOS MENSUALES ================== */
 
-const GF_PAGOS_KEY = 'gastos_fijos_pagos';
-const GF_MES_KEY = 'gastos_fijos_mes';
+const GF_PAGOS_KEY = 'gastos_fijos_pagos'; // solo como respaldo offline
 let gfEditando = null;
 
 const EMPRESA = 'Py';
@@ -3009,63 +3139,107 @@ function mesNombre(mk){
   return MESES[d.getMonth()] + ' ' + d.getFullYear();
 }
 
-function loadPagosGastosFijos(){
-  const mk = mesActualKey();
-  const raw = loadJSON(GF_PAGOS_KEY, {});
-  const mapa = {};
-  (raw[mk] || []).forEach(p => { mapa[p.gastoFijoId] = p; });
-  return mapa;
+/* Mes seleccionado en la pestaña Gastos (YYYY-MM). */
+function gfMesActualKey(){
+  if(gfMesKey) return gfMesKey;
+  return mesActualKey();
 }
 
-function savePagoGastoSingular(gastoFijoId, fechaPago){
-  const mk = mesActualKey();
-  const raw = loadJSON(GF_PAGOS_KEY, {});
-  raw[mk] = raw[mk] || [];
-  const idx = raw[mk].findIndex(p => p.gastoFijoId === gastoFijoId);
-  if(idx > -1) raw[mk].splice(idx, 1);
-  raw[mk].push({ gastoFijoId: gastoFijoId, mes: mk, pagado: true, fechaPago: fechaPago || tsField() });
-  saveJSON(GF_PAGOS_KEY, raw);
-  gastosFijosPagos = loadPagosGastosFijos();
+/* Convierte el selector mes/año de Gastos a clave YYYY-MM ('' = mes actual). */
+function gfMesDesdeSelectores(){
+  const mEl = document.getElementById('gastosMes');
+  const aEl = document.getElementById('gastosAño');
+  const m = mEl ? mEl.value : '';
+  const a = aEl ? aEl.value : '';
+  if(!m && !a) return mesActualKey();
+  const yy = a || String(new Date().getFullYear());
+  const mm = m ? String(m) : String(new Date().getMonth() + 1);
+  return yy + '-' + mm.padStart(2, '0');
 }
 
-function quitarPagoGastoFijo(gastoFijoId){
-  const mk = mesActualKey();
-  const raw = loadJSON(GF_PAGOS_KEY, {});
-  raw[mk] = (raw[mk] || []).filter(p => p.gastoFijoId !== gastoFijoId);
-  saveJSON(GF_PAGOS_KEY, raw);
-  gastosFijosPagos = loadPagosGastosFijos();
+function setGfMesKey(){
+  gfMesKey = gfMesDesdeSelectores();
+}
+
+/* Registro de pago (documento de gastos_fijos_pagos) para un gasto fijo en un mes dado. */
+function pagoGastoFijoEnMes(gfId, mesKey){
+  return (gastosFijosPagos || []).find(p => p.gastoFijoId === gfId && p.mes === mesKey && p.pagado === true) || null;
 }
 
 function estaPagoGastoFijo(id){
-  const p = gastosFijosPagos[id];
-  return !!(p && p.pagado);
+  return !!pagoGastoFijoEnMes(id, gfMesActualKey());
+}
+
+function estaPagoGastoFijoEnMes(id, mesKey){
+  return !!pagoGastoFijoEnMes(id, mesKey);
 }
 
 function regPagoGastoFijo(id){
-  const p = gastosFijosPagos[id];
-  return p && p.pagado ? p : null;
+  return pagoGastoFijoEnMes(id, gfMesActualKey());
 }
 
-function comprobarMesNuevo(){
-  const mk = mesActualKey();
-  const last = localStorage.getItem(GF_MES_KEY);
-  if(last && last !== mk){
-    const raw = loadJSON(GF_PAGOS_KEY, {});
-    raw[last] = [];
-    raw[mk] = raw[mk] || [];
+function guardarPagoFijoOffline(raw){
+  if(!firestoreReady || !db){
+    raw[gfMesActualKey()] = raw[gfMesActualKey()] || [];
+    const idx = raw[gfMesActualKey()].findIndex(p => p.gastoFijoId === raw._gastoFijoId);
+    if(idx > -1) raw[gfMesActualKey()].splice(idx, 1);
+    raw[gfMesActualKey()].push({ gastoFijoId: raw._gastoFijoId, mes: gfMesActualKey(), pagado: true, fechaPago: raw._fechaPago, montoPagado: raw._montoPagado });
     saveJSON(GF_PAGOS_KEY, raw);
   }
-  localStorage.setItem(GF_MES_KEY, mk);
+}
+
+/* Guarda el pago en "gastos_fijos_pagos" (Firestore) y, si hay un pago previo local, lo migra. */
+function guardarPagoGastoFijoFb(gastoFijoId, fechaPago, montoPagado){
+  if(firestoreReady && db){
+    /* Eliminar duplicado previo local del mismo mes para evitar duplicados. */
+    const prev = (gastosFijosPagos || []).find(p => p.gastoFijoId === gastoFijoId && p.mes === gfMesActualKey());
+    let p = Promise.resolve();
+    if(prev && prev.id) p = db.collection('gastos_fijos_pagos').doc(prev.id).set({
+      gastoFijoId: gastoFijoId, mes: gfMesActualKey(),
+      pagado: true, fechaPago: fechaPago || tsField(), montoPagado: Number(montoPagado) || 0
+    });
+    else p = db.collection('gastos_fijos_pagos').add({
+      gastoFijoId: gastoFijoId, mes: gfMesActualKey(),
+      pagado: true, fechaPago: fechaPago || tsField(), montoPagado: Number(montoPagado) || 0
+    });
+    return p;
+  }
+  const raw = loadJSON(GF_PAGOS_KEY, {});
+  raw._gastoFijoId = gastoFijoId; raw._fechaPago = fechaPago; raw._montoPagado = montoPagado;
+  guardarPagoFijoOffline(raw);
+  return Promise.resolve();
+}
+
+function savePagoGastoSingular(gastoFijoId, fechaPago, montoPagado){
+  return guardarPagoGastoFijoFb(gastoFijoId, fechaPago, montoPagado);
+}
+
+function quitarPagoGastoFijo(gastoFijoId){
+  if(firestoreReady && db){
+    const p = (gastosFijosPagos || []).find(x => x.gastoFijoId === gastoFijoId && x.mes === gfMesActualKey());
+    if(p && p.id) return db.collection('gastos_fijos_pagos').doc(p.id).delete();
+    return Promise.resolve();
+  }
+  const raw = loadJSON(GF_PAGOS_KEY, {});
+  raw[gfMesActualKey()] = (raw[gfMesActualKey()] || []).filter(x => x.gastoFijoId !== gastoFijoId);
+  saveJSON(GF_PAGOS_KEY, raw);
+  return Promise.resolve();
+}
+
+function estadoGastoFijoEnMes(gf, mesKey){
+  if(estaPagoGastoFijoEnMes(gf.id, mesKey)) return 'paid';
+  const dia = Number(gf.diaVencimiento) || 0;
+  if(!(dia >= 1 && dia <= 31)) return 'pending';
+  const hoyN = new Date();
+  const hoyDia = hoyN.getDate();
+  if(mesKey !== mesActualKey()) return 'pending';
+  if(hoyDia === dia) return 'due-today';
+  if(hoyDia > dia) return 'overdue';
+  return 'pending';
 }
 
 function estadoGastoFijo(gf){
-  if(estaPagoGastoFijo(gf.id)) return 'done';
-  const dia = Number(gf.diaVencimiento) || 0;
-  const hoyN = new Date();
-  const hoyDia = hoyN.getDate();
-  const esMesActual = true;
-  if(esMesActual && dia >= 1 && dia <= 31 && hoyDia > dia) return 'overdue';
-  return 'pending';
+  return estadoGastoFijoEnMes(gf, gfMesActualKey());
 }
 
 function agregarGastoFijoRec(rec){
@@ -3093,43 +3267,62 @@ function findRegistroGastoFijo(gfId, fecha){
   return (gastos || []).find(r => r.tipo === 'gasto' && r.esGastoFijo === true && (r.gastoFijoId === gfId || r.uid === gfId) && (r.fecha || '').slice(0, 7) === prefix);
 }
 
-function registrarPagoGastoFijo(gf, fecha){
-  if(!firestoreReady || !db) return Promise.resolve();
+function registrarPagoGastoFijo(gf, fecha, monto, metodo){
   const recId = newId();
-  const p = regPagoGastoFijo(gf.id);
-  const desc = p && p.fechaPagoMs ? null : null;
-  const dPromise = db.collection('registros').add({
-    tipo: 'gasto', fecha: fecha || hoy(), descripcion: gf.nombre || '',
-    categoria: gf.categoria || 'Otros', monto: Number(gf.monto) || 0,
-    metodoPago: gf.metodoPago || 'Efectivo', comentarios: 'Gasto fijo mensual',
-    persona: gf.persona || 'Yo', uid: recId,
-    creadoPor: getNombreUsuario(), timestamp: tsField(),
-    tipoGasto: 'fijo',
-    esGastoFijo: true, gastoFijoId: gf.id
+  const pPromise = guardarPagoGastoFijoFb(gf.id, fecha || hoy(), monto);
+  let gastoPromise = Promise.resolve();
+  if(firestoreReady && db){
+    gastoPromise = db.collection('registros').add({
+      tipo: 'gasto', fecha: fecha || hoy(), descripcion: gf.nombre || '',
+      categoria: gf.categoria || 'Otros', monto: Number(monto) || Number(gf.monto) || 0,
+      metodoPago: metodo || gf.metodoPago || 'Efectivo', comentarios: 'Gasto fijo mensual',
+      persona: gf.persona || 'Yo', uid: recId,
+      creadoPor: getNombreUsuario(), timestamp: tsField(),
+      tipoGasto: 'fijo',
+      esGastoFijo: true, gastoFijoId: gf.id
+    });
+  }
+  return Promise.all([pPromise, gastoPromise]).then(() => {
+    /* No llamamos a renderAll() acá: el onSnapshot de gastos_fijos_pagos
+       disparará el render con el array actualizado. Un renderAll() inmediato
+       leería el estado viejo y revertiría el ✅ a ⭕ (causa del bug). */
   });
-  dPromise.then(() => {
-    savePagoGastoSingular(gf.id, tsField());
-    renderAll();
-  });
-  return dPromise;
 }
 
 function revertirPagoGastoFijo(gf){
-  const p = regPagoGastoFijo(gf.id);
   const reg = findRegistroGastoFijo(gf.id);
-  const ops = [];
+  const ops = [quitarPagoGastoFijo(gf.id)];
   if(reg && firestoreReady && db){
     ops.push(db.collection('registros').doc(reg.id).delete());
   }
-  quitarPagoGastoFijo(gf.id);
   Promise.all(ops).then(() => { renderAll(); });
+}
+
+function pausarGastoFijoRec(id){
+  if(!firestoreReady || !db) return Promise.resolve();
+  return db.collection('gastos_fijos').doc(id).update({ activo: false, timestamp: tsField() });
+}
+
+function gastoFijoVenceTxt(g){
+  const dia = Number(g.diaVencimiento) || 0;
+  if(!(dia >= 1 && dia <= 31)) return '';
+  const mk = gfMesActualKey();
+  const hoyN = new Date();
+  if(mk === mesActualKey()){
+    const hoyDia = hoyN.getDate();
+    if(hoyDia === dia) return 'Vence hoy';
+    if(hoyDia > dia) return 'Venció el ' + dia;
+    return 'Vence el ' + dia;
+  }
+  return 'Vence el ' + dia;
 }
 
 function renderGastosFijosList(){
   const cont = document.getElementById('gfLista');
   const titulo = document.getElementById('gfMesTitulo');
   if(!cont) return;
-  const mk = mesActualKey();
+  setGfMesKey();
+  const mk = gfMesActualKey();
   if(titulo) titulo.textContent = mesNombre(mk);
   const lista = (gastosFijos || []).filter(g => g.activo !== false);
   const resumen = document.getElementById('gfMesResumen');
@@ -3141,7 +3334,7 @@ function renderGastosFijosList(){
   let pagadosCount = 0, vencidos = 0, totalMes = 0;
   lista.forEach(g => {
     const est = estadoGastoFijo(g);
-    if(est === 'done') pagadosCount++;
+    if(est === 'paid') pagadosCount++;
     else if(est === 'overdue') vencidos++;
     totalMes += Number(g.monto) || 0;
   });
@@ -3152,24 +3345,25 @@ function renderGastosFijosList(){
       : (pagadosCount + ' de ' + lista.length + ' pagados'))
       + (vencidos > 0 ? ' · <span class="gf-warn">🔴 ' + vencidos + ' vencido' + (vencidos === 1 ? '' : 's') + '</span>' : '');
   }
-  const hoyDia = new Date().getDate();
   cont.innerHTML = lista.map(g => {
     const est = estadoGastoFijo(g);
-    const done = est === 'done';
+    const done = est === 'paid';
     const dia = Number(g.diaVencimiento) || 0;
+    const estadoCls = done ? 'gf-check-state-paid' : (est === 'overdue' ? 'gf-check-state-overdue' : (est === 'due-today' ? 'gf-check-state-today' : 'gf-check-state-default'));
     const cls = 'gf-item' + (done ? ' gf-done' : '') + (est === 'overdue' ? ' gf-overdue' : '');
     const check = done ? '✅' : '⭕';
-    const venceTxt = dia >= 1 && dia <= 31 ? 'Vence el ' + dia : '';
+    const venceTxt = gastoFijoVenceTxt(g);
     const overdueTxt = est === 'overdue' ? ' · <span class="gf-overdue-tag">🔴 Vencido</span>' : '';
+    const todayTxt = est === 'due-today' ? ' · <span class="gf-overdue-tag today">🟠 Vence hoy</span>' : '';
     return '<div class="' + cls + '" data-gf="' + esc(g.id) + '">' +
-      '<button type="button" class="gf-check" data-gf-check="' + esc(g.id) + '" title="' + (done ? 'Desmarcar como pagado' : 'Marcar como pagado') + '">' + check + '</button>' +
+      '<button type="button" class="gf-check ' + estadoCls + '" data-gf-check="' + esc(g.id) + '" title="' + (done ? 'Desmarcar como pagado' : 'Marcar como pagado') + '">' + check + '</button>' +
       '<div class="gf-body">' +
         '<div class="gf-top"><span class="gf-nombre">' + esc(g.nombre || '') + '</span><span class="gf-monto">' + formatPYG(g.monto) + '</span></div>' +
         '<div class="gf-sub">' +
           (venceTxt ? '<span>⏰ ' + venceTxt + '</span>' : '') +
           '<span class="gf-badge">' + esc(g.categoria || '') + '</span>' +
           '<span>👤 ' + esc(g.persona || 'Yo') + '</span>' +
-          overdueTxt +
+          overdueTxt + todayTxt +
         '</div>' +
       '</div>' +
       '<div class="gf-item-actions">' +
@@ -3184,10 +3378,11 @@ function renderGastosFijosResumen(){
   const card = document.getElementById('gfResumenCard');
   if(!card) return;
   const lista = (gastosFijos || []).filter(g => g.activo !== false);
+  const mkRes = mesActualKey();
   const total = lista.length;
-  const pagados = lista.filter(g => estaPagoGastoFijo(g.id)).length;
-  const pend = lista.filter(g => !estaPagoGastoFijo(g.id));
-  const vencidos = pend.filter(g => estadoGastoFijo(g) === 'overdue');
+  const pagados = lista.filter(g => estaPagoGastoFijoEnMes(g.id, mkRes)).length;
+  const pend = lista.filter(g => !estaPagoGastoFijoEnMes(g.id, mkRes));
+  const vencidos = pend.filter(g => estadoGastoFijoEnMes(g, mkRes) === 'overdue');
   document.getElementById('gfResumenCount').textContent = pagados + ' de ' + total + ' pagados';
   const bar = document.getElementById('gfResumenBar');
   if(bar) bar.style.width = (total ? Math.round(pagados / total * 100) : 0) + '%';
@@ -3196,9 +3391,9 @@ function renderGastosFijosResumen(){
     listaEl.innerHTML = '<li style="justify-content:flex-start;color:#16a34a;font-weight:600">' + (total ? '✅ ¡Todos al día!' : 'Sin gastos fijos configurados.') + '</li>';
   } else {
     const orden = pend.slice().sort((a, b) => (Number(a.diaVencimiento) || 0) - (Number(b.diaVencimiento) || 0));
-    listaEl.innerHTML = orden.map(g => {
+    listaEl.innerHTML = orden.slice(0, 3).map(g => {
       const dia = Number(g.diaVencimiento) || 0;
-      const overdue = estadoGastoFijo(g) === 'overdue';
+      const overdue = estadoGastoFijoEnMes(g, mkRes) === 'overdue';
       return '<li><span class="gf-d1">' + esc(g.nombre || '') + ' · ' + formatPYG(g.monto) + '</span>' +
         (overdue ? '<span class="gf-d2">🔴 Vencido (' + dia + ')</span>' : '<span>Vence el ' + dia + '</span>') + '</li>';
     }).join('');
@@ -3235,6 +3430,7 @@ function abrirFormGastoFijo(){
   document.getElementById('gfMetodoPago').value = 'Efectivo';
   document.getElementById('gfPersona').value = 'Yo';
   document.getElementById('gfBtnCancelar').hidden = true;
+  document.getElementById('gfBtnPausar').hidden = true;
   document.getElementById('gfBtnSubmit').textContent = '➕ Agregar';
   const btn = document.getElementById('gfBtnAbrirForm');
   if(btn && typeof btn.scrollIntoView === 'function') btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -3253,6 +3449,7 @@ function iniciarEdicionGastoFijo(gf){
   document.getElementById('gfMetodoPago').value = gf.metodoPago || 'Efectivo';
   document.getElementById('gfPersona').value = gf.persona || 'Yo';
   document.getElementById('gfBtnCancelar').hidden = false;
+  document.getElementById('gfBtnPausar').hidden = false;
   document.getElementById('gfBtnSubmit').textContent = '💾 Guardar cambios';
   const btn = document.getElementById('gfBtnAbrirForm');
   if(btn && typeof btn.scrollIntoView === 'function') btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -3266,6 +3463,15 @@ function cancelarFormGastoFijo(){
 
 document.getElementById('gfBtnAbrirForm').addEventListener('click', abrirFormGastoFijo);
 document.getElementById('gfBtnCancelar').addEventListener('click', cancelarFormGastoFijo);
+document.getElementById('gfBtnPausar').addEventListener('click', () => {
+  if(!gfEditando){ cancelarFormGastoFijo(); return; }
+  pausarGastoFijoRec(gfEditando.id).then(() => {
+    cancelarFormGastoFijo();
+    toast('Gasto fijo pausado (oculto)', 'info');
+    vibrar(40);
+    renderAll();
+  });
+});
 
 document.getElementById('gfForm').addEventListener('submit', e => {
   e.preventDefault();
@@ -3304,6 +3510,10 @@ document.getElementById('gfLista').addEventListener('click', e => {
     const id = check.dataset.gfCheck;
     const gf = (gastosFijos || []).find(x => x.id === id);
     if(!gf) return;
+    /* Protección anti doble-click: ignorar taps mientras hay una operación en curso */
+    if(check.dataset.busy === '1') return;
+    check.dataset.busy = '1';
+    setTimeout(() => { delete check.dataset.busy; }, 400);
     togglePagoGastoFijo(gf);
     return;
   }
@@ -3325,18 +3535,80 @@ document.getElementById('gfLista').addEventListener('click', e => {
   }
 });
 
+let gfPagoActual = null;
+
 function togglePagoGastoFijo(gf){
   if(estaPagoGastoFijo(gf.id)){
-    revertirPagoGastoFijo(gf);
-    toast('Pago desmarcado', 'info');
-    vibrar(30);
+    confirmDelete('¿Desmarcar este pago? Se eliminará el gasto registrado.', () => {
+      /* Actualización optimista: quitar el pago del array local antes de esperar Firestore */
+      gastosFijosPagos = gastosFijosPagos.filter(p => !(p.gastoFijoId === gf.id && p.mes === gfMesActualKey()));
+      renderGastosFijosList();
+      renderGastosFijosResumen();
+      revertirPagoGastoFijo(gf).then(() => {
+        toast('⭕ ' + (gf.nombre || '') + ' desmarcado', 'info');
+        vibrar(30);
+      });
+    });
     return;
   }
-  registrarPagoGastoFijo(gf, hoy()).then(() => {
-    toast('Gasto pagado ✔');
+  abrirModalPagoGastoFijo(gf);
+}
+
+function abrirModalPagoGastoFijo(gf){
+  gfPagoActual = gf;
+  const nameEl = document.getElementById('gfPagoNombre');
+  if(nameEl) nameEl.textContent = (gf.nombre || '') + ' · ' + formatPYG(gf.monto) + ' · ' + (gf.categoria || '');
+  const fechaEl = document.getElementById('gfPagoFecha');
+  const mk = gfMesActualKey();
+  if(mk === mesActualKey()){ fechaEl.value = hoy(); }
+  else {
+    const [yy, mm] = mk.split('-');
+    const ultimoDia = new Date(Number(yy), Number(mm), 0).getDate();
+    const dia = Math.min(Number(gf.diaVencimiento) || 1, ultimoDia);
+    fechaEl.value = yy + '-' + mm + '-' + String(dia).padStart(2, '0');
+  }
+  const montoEl = document.getElementById('gfPagoMonto');
+  if(montoEl) montoEl.value = Number(gf.monto) || '';
+  const metodoEl = document.getElementById('gfPagoMetodo');
+  if(metodoEl) metodoEl.value = gf.metodoPago || 'Efectivo';
+  const bd = document.getElementById('gfPagoBackdrop');
+  if(bd) bd.hidden = false;
+  if(fechaEl) setTimeout(() => fechaEl.focus(), 60);
+}
+
+function cerrarModalPagoGastoFijo(){
+  const bd = document.getElementById('gfPagoBackdrop');
+  if(bd) bd.hidden = true;
+  gfPagoActual = null;
+}
+
+document.getElementById('gfPagoBackdrop').addEventListener('click', e => {
+  if(e.target === document.getElementById('gfPagoBackdrop')) cerrarModalPagoGastoFijo();
+});
+document.getElementById('gfPagoCancelar').addEventListener('click', cerrarModalPagoGastoFijo);
+
+document.getElementById('gfPagoForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const gf = gfPagoActual;
+  if(!gf){ cerrarModalPagoGastoFijo(); return; }
+  const fecha = document.getElementById('gfPagoFecha').value || hoy();
+  const monto = Number(document.getElementById('gfPagoMonto').value) || 0;
+  const metodo = document.getElementById('gfPagoMetodo').value;
+  if(!(monto > 0)){ toast('Ingresa un monto válido', 'error'); return; }
+  cerrarModalPagoGastoFijo();
+  /* Actualización optimista: agregar pago al array local ANTES de renderizar
+     para que el checkbox cambie a ✅ inmediatamente, sin esperar el onSnapshot. */
+  const mesKey = gfMesActualKey();
+  const existente = gastosFijosPagos.findIndex(p => p.gastoFijoId === gf.id && p.mes === mesKey);
+  if(existente > -1){ gastosFijosPagos[existente].pagado = true; gastosFijosPagos[existente].montoPagado = monto; }
+  else { gastosFijosPagos.push({ id: '_opt_' + Date.now(), gastoFijoId: gf.id, mes: mesKey, pagado: true, fechaPago: fecha, montoPagado: monto }); }
+  renderGastosFijosList();
+  renderGastosFijosResumen();
+  registrarPagoGastoFijo(gf, fecha, monto, metodo).then(() => {
+    toast('✅ ' + (gf.nombre || '') + ' pagado - ' + formatPYG(monto));
     vibrar(40);
   });
-}
+});
 
 /* ================== FIN GASTOS FIJOS MENSUALES ================== */
 
@@ -3366,6 +3638,11 @@ function renderPresupuesto(){
   document.getElementById('presFijosTotal').textContent = formatPYG(sf);
   document.getElementById('presOcasionalesTotal').textContent = formatPYG(so);
   document.getElementById('presPctFijos').textContent = totalMesRec > 0 ? Math.round(sf / totalMesRec * 100) + '%' : '0%';
+  const gfCompromisoEl = document.getElementById('presCompromisos');
+  if(gfCompromisoEl){
+    const gfComp = (gastosFijos || []).filter(g => g.activo !== false).reduce((s, g) => s + (Number(g.monto) || 0), 0);
+    gfCompromisoEl.textContent = formatPYG(gfComp);
+  }
   let html = '';
   let sPres = 0, sReal = 0, riesgo = 0;
   CATEGORIAS_GASTOS.forEach(c => {
@@ -4204,7 +4481,6 @@ document.getElementById('aporteFecha').value = hoy();
 fillSelects();
 initSwipe();
 setupNameOverlay();
-comprobarMesNuevo();
 renderGastosFijosList();
 renderGastosFijosResumen();
 const cfgInicial = getFirebaseConfig();
