@@ -154,8 +154,7 @@ textarea{resize:vertical;min-height:88px}
 .kpi.gasto{border-top:4px solid var(--rojo)}
 .kpi.ahorro{border-top:4px solid var(--primario)}
 .kpi.deuda{border-top:4px solid var(--ambar)}
-.kpi .sub{font-size:.78rem;color:var(--suave);margin-top:6px}
-.deuda-sub.warn{color:var(--ambar);font-weight:700}
+.kpi .sub{font-size:.78rem;color:var(--suave);margin-top:6px}.deuda-sub.warn{color:var(--ambar);font-weight:700}
 .deuda-sub.over{color:var(--rojo);font-weight:700}
 .ring{--pct:0;--ring:var(--verde);--track:#EDF2F7;position:relative;width:88px;height:88px;border-radius:50%;background:conic-gradient(var(--ring) calc(var(--pct)*1%), var(--track) 0);margin-top:6px}
 .ring::before{content:'';position:absolute;inset:9px;border-radius:50%;background:var(--card)}
@@ -167,6 +166,18 @@ textarea{resize:vertical;min-height:88px}
 .ring.over{--ring:var(--rojo)}
 html.dark .ring{--track:#0f3460}
 
+/* ---- Flujo de dinero: bruto, descuentos, disponible, vida, ahorro real ---- */
+.flujo-card{background:var(--card);border:1px dashed var(--borde);border-radius:16px;box-shadow:var(--sombra);padding:16px 18px 18px;margin-bottom:18px}
+.flujo-head{font-size:1rem;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:var(--texto)}
+.kpi.descuento{border-top:4px solid #64748b}
+.kpi.descuento .valor{color:#64748b}
+.kpi.disponible{border-top:4px solid var(--primario);background:linear-gradient(180deg,rgba(107,91,149,.08),transparent)}
+.kpi.disponible .valor{color:var(--primario)}
+.kpi.vida{border-top:4px solid var(--ambar)}
+.kpi.vida .valor{color:var(--ambar)}
+html.dark .kpi.descuento .valor{color:#94a3b8}
+html.dark .kpi.disponible .valor{color:var(--acento)}
+
 .charts-grid{display:grid;grid-template-columns:1fr;gap:18px}
 @media(min-width:768px){.charts-grid{grid-template-columns:1fr 1fr}}
 .chart-box{position:relative;height:280px}
@@ -175,6 +186,26 @@ html.dark .ring{--track:#0f3460}
 .filter-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px}
 .filter-row label{font-size:.82rem;font-weight:600;color:var(--suave)}
 .filter-row select{width:auto;min-width:150px}
+
+/* ---- Búsqueda por descripción ---- */
+.busqueda-box{position:relative;display:flex;align-items:center;flex:1;min-width:200px}
+.busqueda-box .busqueda-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:.95rem;color:var(--suave)}
+.busqueda-box input.busqueda{
+  width:100%;min-height:48px;padding:12px 42px 12px 38px;border:1px solid var(--borde);
+  border-radius:12px;font-size:.92rem;background:var(--card);color:var(--texto);outline:none;transition:border-color .15s, box-shadow .15s;
+}
+.busqueda-box input.busqueda::placeholder{color:var(--suave);opacity:.8}
+.busqueda-box input.busqueda:focus{border-color:#6B5B95;box-shadow:0 0 0 3px rgba(107,91,149,.18)}
+.busqueda-box .busqueda-clear{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;min-height:0;min-width:0;
+  display:flex;align-items:center;justify-content:center;border:none;background:none;color:var(--suave);
+  font-size:1rem;cursor:pointer;border-radius:8px;padding:0;
+}
+.busqueda-box .busqueda-clear:hover{background:rgba(120,120,120,.12)}
+.busqueda-count{margin:0 0 10px;font-size:.8rem;font-weight:600;color:var(--suave)}
+.busqueda-count.busqueda-none{color:var(--rojo);font-weight:700}
+html.dark .busqueda-box input.busqueda{background:#1e293b;background-color:#1e293b}
+html.dark .busqueda-box input.busqueda:focus{box-shadow:0 0 0 3px rgba(178,165,255,.2)}
 
 .table-wrap{overflow-x:auto;overflow-y:auto;max-height:430px;border:1px solid var(--borde);border-radius:12px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 table{width:100%;border-collapse:collapse;min-width:680px;font-size:.9rem}
@@ -192,6 +223,8 @@ tbody tr:last-child td{border-bottom:none}
 .tag.rojo{background:#FEE2E2;color:#B91C1C}
 .tag.ambar{background:#FEF3C7;color:#B45309}
 .tag.morado{background:#EDE9FE;color:#6D28D9}
+.tag-planilla{background:#E2E8F0;color:#475569}
+html.dark .tag-planilla{background:#334155;color:#CBD5E1}
 
 .totals-bar{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .chip{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:9px 14px;font-size:.88rem;color:var(--suave);box-shadow:var(--sombra)}
@@ -514,6 +547,12 @@ html.dark .celebra-card{background:#16213e}
 .gf-check.gf-check-state-today{border-color:#f59e0b;color:#f59e0b}
 .gf-check.gf-check-state-overdue{border-color:#ef4444;color:#ef4444}
 html.dark .gf-check.gf-check-state-default{border-color:#64748b;color:#64748b}
+
+/* Grupo separado: descuentos automáticos del sueldo vs gastos fijos normales */
+.gf-grupo-head{margin:14px 0 6px;font-size:.82rem;font-weight:800;color:var(--suave);text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:6px}
+.gf-grupo-head:first-child{margin-top:0}
+.gf-badge.planilla{background:#E2E8F0;color:#475569}
+html.dark .gf-badge.planilla{background:#334155;color:#CBD5E1}
 .gf-item.gf-done .gf-check.gf-check-state-paid{background:#22c55e;border-color:#22c55e;color:#fff;transform:scale(1.1)}
 .gf-overdue-tag.today{color:#f59e0b}
 
@@ -815,6 +854,43 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
       </div>
     </div>
 
+    <!-- Flujo de dinero: Bruto → Descuentos → Disponible → Vida → Ahorro real -->
+    <div class="flujo-card">
+      <div class="flujo-head">🏦 Flujo de dinero del mes</div>
+      <div class="kpi-grid" style="margin-bottom:0">
+        <div class="kpi ingreso">
+          <span class="icon">💰</span>
+          <div class="label">Ingreso Bruto del mes</div>
+          <div class="valor" id="flujoIngresoBruto">₲ 0</div>
+          <div class="sub">Total de ingresos (bruto)</div>
+        </div>
+        <div class="kpi descuento">
+          <span class="icon">📉</span>
+          <div class="label">Descuentos de planilla</div>
+          <div class="valor" id="flujoDescuentos">₲ 0</div>
+          <div class="sub">Automaticos antes de entrar</div>
+        </div>
+        <div class="kpi disponible">
+          <span class="icon">💵</span>
+          <div class="label">Disponible para gastar</div>
+          <div class="valor" id="flujoDisponible">₲ 0</div>
+          <div class="sub">Ingreso bruto − descuentos</div>
+        </div>
+        <div class="kpi vida">
+          <span class="icon">📝</span>
+          <div class="label">Gastos de vida</div>
+          <div class="valor" id="flujoGastosVida">₲ 0</div>
+          <div class="sub">Gastos sin descuentos de planilla</div>
+        </div>
+        <div class="kpi ahorro">
+          <span class="icon">🎯</span>
+          <div class="label">Ahorro Disponible</div>
+          <div class="valor" id="flujoAhorro">₲ 0</div>
+          <div class="sub">Disponible − gastos de vida</div>
+        </div>
+      </div>
+    </div>
+
     <div class="kpi-grid" id="deudasKpiGrid" hidden>
       <div class="kpi deuda">
         <span class="icon">💳</span>
@@ -982,7 +1058,13 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         <label>Año
           <select id="ingresosAño"></select>
         </label>
+        <div class="busqueda-box">
+          <span class="busqueda-icon">🔍</span>
+          <input type="text" class="busqueda" id="buscarIngresos" placeholder="Buscar por descripción..." autocomplete="off">
+          <button type="button" class="busqueda-clear" id="clearBuscarIngresos" title="Limpiar búsqueda" hidden>✕</button>
+        </div>
       </div>
+      <div class="busqueda-count" id="contadorIngresos" hidden></div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -1064,6 +1146,11 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
           <div class="gf-summary" id="gfMesResumen"></div>
         </div>
         <button type="button" class="gf-add-btn" id="gfBtnAbrirForm">➕ Agregar gasto fijo</button>
+      </div>
+      <div class="busqueda-box" style="margin:0 0 12px;max-width:480px">
+        <span class="busqueda-icon">🔍</span>
+        <input type="text" class="busqueda" id="buscarGastosFijos" placeholder="Buscar gasto fijo..." autocomplete="off">
+        <button type="button" class="busqueda-clear" id="clearBuscarGastosFijos" title="Limpiar búsqueda" hidden>✕</button>
       </div>
       <div class="gf-list" id="gfLista"></div>
       <form id="gfForm" class="gf-form" hidden novalidate>
@@ -1154,7 +1241,13 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         <label>Año
           <select id="gastosAño"></select>
         </label>
+        <div class="busqueda-box">
+          <span class="busqueda-icon">🔍</span>
+          <input type="text" class="busqueda" id="buscarGastos" placeholder="Buscar por descripción..." autocomplete="off">
+          <button type="button" class="busqueda-clear" id="clearBuscarGastos" title="Limpiar búsqueda" hidden>✕</button>
+        </div>
       </div>
+      <div class="busqueda-count" id="contadorGastos" hidden></div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -1211,6 +1304,12 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
         <input type="radio" name="deudasFiltro" id="filtroDeudasTodas" checked>
         <label for="filtroDeudasTodas">📋 Todas</label>
       </div>
+      <div class="busqueda-box" style="margin-top:10px;max-width:480px">
+        <span class="busqueda-icon">🔍</span>
+        <input type="text" class="busqueda" id="buscarDeudas" placeholder="Buscar deuda por nombre o entidad..." autocomplete="off">
+        <button type="button" class="busqueda-clear" id="clearBuscarDeudas" title="Limpiar búsqueda" hidden>✕</button>
+      </div>
+      <div class="busqueda-count" id="contadorDeudas" hidden></div>
     </div>
 
     <form id="dForm" class="card" novalidate>
@@ -1486,6 +1585,23 @@ const CATEGORIAS_GASTOS = ['Vivienda','Alimentación','Transporte','Servicios','
 const CATEGORIAS_INGRESOS = ['Salario','Freelance','Otros ingresos'];
 const PERSONAS = ['Yo','Mi pareja'];
 const METODOS = ['Efectivo','Débito','Crédito','Transferencia'];
+/* ----- Descuentos de planilla (automáticos del sueldo) ----- */
+const DESCUENTOS_PLANILLA_CATEGORIAS = [
+  'Aportes', 'IPS', 'Jubilación', 'Seguridad Social',
+  'Descuentos de ley', 'Préstamo institucional', 'Descuento planilla'
+];
+const DESCUENTOS_PLANILLA_PALABRAS = [
+  'ips', 'jubilacion', 'caja de jubilaciones', 'aporte',
+  'descuento', 'planilla', 'institucional', 'descuento automático'
+];
+/* Detección de descuento de planilla por categoría exacta o palabras en la descripción */
+function esDescuentoPlanilla(g){
+  if(!g) return false;
+  const cat = String(g.categoria || '').trim();
+  if(DESCUENTOS_PLANILLA_CATEGORIAS.indexOf(cat) > -1) return true;
+  const desc = String(g.descripcion || '').toLowerCase();
+  return DESCUENTOS_PLANILLA_PALABRAS.some(p => desc.includes(p));
+}
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const PALETA = ['#6366F1','#10B981','#F59E0B','#EF4444','#3B82F6','#8B5CF6','#EC4899','#14B8A6','#F97316','#84CC16','#64748B','#E07A5F'];
 const FIREBASE_CONFIG_KEY = 'firebase_config';
@@ -1768,6 +1884,47 @@ function reiniciarQueriesFiltradas(){
 function mostrarListaOFilter(type){
   if(type === 'ingreso') return listaIngresos || filterIngresos();
   return listaGastos || filterGastos();
+}
+
+/* ----------------------------------------------------------------
+   Búsqueda por descripción reutilizable (ingresos, gastos, deudas)
+---------------------------------------------------------------- */
+const _busquedaState = { ingresos:'', gastos:'', gf:'', deudas:'' };
+
+function filtrarPorDescripcion(lista, textoBusqueda){
+  if(!textoBusqueda) return lista;
+  const busqueda = textoBusqueda.toLowerCase().trim();
+  return lista.filter(item =>
+    (item.descripcion && item.descripcion.toLowerCase().includes(busqueda)) ||
+    (item.nombre && item.nombre.toLowerCase().includes(busqueda)) ||
+    (item.entidad && item.entidad.toLowerCase().includes(busqueda))
+  );
+}
+
+function debounceBusqueda(fn, ms){
+  let t;
+  return function(){
+    const ctx = this, args = arguments;
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(ctx, args), ms);
+  };
+}
+
+function actualizarContadorBusqueda(idCont, n, tipo){
+  const el = document.getElementById(idCont);
+  if(!el) return;
+  const activo = _busquedaState[tipo];
+  if(!activo){ el.hidden = true; return; }
+  el.hidden = false;
+  if(n === 0){
+    el.textContent = tipo === 'deudas'
+      ? 'No se encontraron deudas'
+      : 'No se encontraron ' + tipo + ' con esa descripción';
+    el.classList.add('busqueda-none');
+  } else {
+    el.textContent = n + ' resultado' + (n === 1 ? '' : 's') + ' encontrado' + (n === 1 ? '' : 's');
+    el.classList.remove('busqueda-none');
+  }
 }
 
 function initFirestore(cfg){
@@ -2085,6 +2242,38 @@ document.getElementById('gastosCat').addEventListener('change', () => { renderGa
 document.getElementById('gastosMes').addEventListener('change', () => { renderGastos(); renderGastosFijosList(); renderGastosFijosResumen(); reiniciarQueriesFiltradas(); });
 document.getElementById('gastosAño').addEventListener('change', () => { renderGastos(); renderGastosFijosList(); renderGastosFijosResumen(); reiniciarQueriesFiltradas(); });
 
+/* ------------------ BÚSQUEDA POR DESCRIPCIÓN ------------------ */
+function vincularBusqueda(cfg){
+  const input = document.getElementById(cfg.input);
+  const clear = document.getElementById(cfg.clear);
+  if(!input) return;
+  const aplicar = () => {
+    _busquedaState[cfg.tipo] = input.value || '';
+    if(clear) clear.hidden = !input.value;
+    cfg.render();
+  };
+  const onInput = debounceBusqueda(aplicar, 300);
+  input.addEventListener('input', onInput);
+  if(clear) clear.addEventListener('click', () => { input.value = ''; aplicar(); input.focus(); });
+}
+vincularBusqueda({
+  tipo: 'ingresos', input: 'buscarIngresos', clear: 'clearBuscarIngresos', render: renderIngresos
+});
+vincularBusqueda({
+  tipo: 'gastos', input: 'buscarGastos', clear: 'clearBuscarGastos', render: renderGastos
+});
+vincularBusqueda({
+  tipo: 'gf', input: 'buscarGastosFijos', clear: 'clearBuscarGastosFijos', render: renderGastosFijosList
+});
+vincularBusqueda({
+  tipo: 'deudas', input: 'buscarDeudas', clear: 'clearBuscarDeudas', render: renderDeudas
+});
+/* Mostrar/ocultar botón ✕ según estado inicial y limpiar al cambiar de pestaña no */
+['ingresos','gastos','gf','deudas'].forEach(t => {
+  const clear = document.getElementById({ingresos:'clearBuscarIngresos',gastos:'clearBuscarGastos',gf:'clearBuscarGastosFijos',deudas:'clearBuscarDeudas'}[t]);
+  if(clear) clear.hidden = !_busquedaState[t];
+});
+
 /* ------------------ INGRESOS ------------------ */
 
 document.getElementById('formIngreso').addEventListener('submit', e => {
@@ -2159,7 +2348,9 @@ function filterIngresos(){
 
 function renderIngresos(){
   const tbody = document.getElementById('ingresosTbody');
-  const lista = mostrarListaOFilter('ingreso').sort((x,y) => (y.fecha||'').localeCompare(x.fecha||'') || y.id.localeCompare(x.id));
+  let lista = mostrarListaOFilter('ingreso').sort((x,y) => (y.fecha||'').localeCompare(x.fecha||'') || y.id.localeCompare(x.id));
+  lista = filtrarPorDescripcion(lista, _busquedaState.ingresos);
+  actualizarContadorBusqueda('contadorIngresos', lista.length, 'ingresos');
   if(!lista.length){
     tbody.innerHTML = '<tr><td colspan="6" class="empty">📭 Sin ingresos registrados</td></tr>';
   } else {
@@ -2327,16 +2518,20 @@ function cuotaInfo(g){
 
 function renderGastos(){
   const tbody = document.getElementById('gastosTbody');
-  const lista = aplicarFiltroTipo(mostrarListaOFilter('gasto')).sort((x,y) => (y.fecha||'').localeCompare(x.fecha||'') || y.id.localeCompare(x.id));
+  let lista = aplicarFiltroTipo(mostrarListaOFilter('gasto'));
+  lista = filtrarPorDescripcion(lista, _busquedaState.gastos).sort((x,y) => (y.fecha||'').localeCompare(x.fecha||'') || y.id.localeCompare(x.id));
+  actualizarContadorBusqueda('contadorGastos', lista.length, 'gastos');
   if(!lista.length){
     tbody.innerHTML = '<tr><td colspan="8" class="empty">📭 Sin gastos registrados</td></tr>';
   } else {
     tbody.innerHTML = lista.map(g => {
       const ci = cuotaInfo(g);
+      const planilla = esDescuentoPlanilla(g);
+      const planillaTag = planilla ? '<span class="tag tag-planilla">🏛️ Planilla</span>' : '';
       return `
       <tr${g.id === lastAdded ? ' class="row-enter"' : ''}>
         <td data-label="Fecha" class="row-date">${fmtFecha(g.fecha)}</td>
-        <td data-label="Descripción" class="row-desc">${esc(g.descripcion)}<span class="tag">👤 ${esc(g.creadoPor || g.persona || '—')}</span></td>
+        <td data-label="Descripción" class="row-desc">${esc(g.descripcion)}<span class="tag">👤 ${esc(g.creadoPor || g.persona || '—')}</span>${planillaTag}</td>
         <td data-label="Tipo">${tipoBadge(g)} ${ci.badges}</td>
         <td data-label="Categoría">${catBadge(g.categoria)}</td>
         <td data-label="Monto" class="monto gas">${formatPYG(g.monto)}${ci.progress}</td>
@@ -2495,8 +2690,10 @@ function renderDeudas(){
 
   const cont = document.getElementById('deudasCardsList');
   if(!cont) return;
+  lista = filtrarPorDescripcion(lista, _busquedaState.deudas);
+  actualizarContadorBusqueda('contadorDeudas', lista.length, 'deudas');
   const mk = mesActualKey();
-  const sig = filtro + ':' + lista.map(d =>
+  const sig = 'b:' + _busquedaState.deudas + '|' + filtro + ':' + lista.map(d =>
     (d.id||'') + '|' + (d.estado||'activa') + '|' + (Number(d.saldoActual)||0) + '|' + (Number(d.cuotaMensual)||0) + '|' +
     (Number(d.cuotasPagadas)||0) + '|' + (Number(d.cuotasTotales)||0) + '|' + ((gastos||[]).some(r => r.tipo === 'gasto' && r.esDeuda === true && r.deudaId === d.id && (r.fecha || '').slice(0, 7) === mk) ? 1 : 0)
   ).join(';');
@@ -2504,7 +2701,9 @@ function renderDeudas(){
   _deudasListSig = sig;
 
   if(!lista.length){
-    cont.innerHTML = '<div class="deudas-empty">📭 Sin deudas' + (filtro === 'activa' ? ' activas' : filtro === 'pagada' ? ' pagadas' : ' registradas') + '</div>';
+    cont.innerHTML = '<div class="deudas-empty">' + (_busquedaState.deudas
+      ? 'No se encontraron deudas'
+      : '📭 Sin deudas' + (filtro === 'activa' ? ' activas' : filtro === 'pagada' ? ' pagadas' : ' registradas')) + '</div>';
     return;
   }
   cont.innerHTML = lista.map(d => {
@@ -3387,6 +3586,44 @@ function gastoFijoVenceTxt(g){
   return 'Vence el ' + dia;
 }
 
+function gfItemHtml(g){
+  const est = estadoGastoFijo(g);
+  const done = est === 'paid';
+  const estadoCls = done ? 'gf-check-state-paid' : (est === 'overdue' ? 'gf-check-state-overdue' : (est === 'due-today' ? 'gf-check-state-today' : 'gf-check-state-default'));
+  const cls = 'gf-item' + (done ? ' gf-done' : '') + (est === 'overdue' ? ' gf-overdue' : '');
+  const check = done ? '✅' : '⭕';
+  const venceTxt = gastoFijoVenceTxt(g);
+  const overdueTxt = est === 'overdue' ? ' · <span class="gf-overdue-tag">🔴 Vencido</span>' : '';
+  const todayTxt = est === 'due-today' ? ' · <span class="gf-overdue-tag today">🟠 Vence hoy</span>' : '';
+  const planilla = esDescuentoPlanillaGF(g);
+  const planillaTag = planilla ? '<span class="gf-badge planilla">🏛️ Planilla</span>' : '';
+  return '<div class="' + cls + '" data-gf="' + esc(g.id) + '">' +
+    '<button type="button" class="gf-check ' + estadoCls + '" data-gf-check="' + esc(g.id) + '" title="' + (done ? 'Desmarcar como pagado' : 'Marcar como pagado') + '">' + check + '</button>' +
+    '<div class="gf-body">' +
+      '<div class="gf-top"><span class="gf-nombre">' + esc(g.nombre || '') + '</span><span class="gf-monto">' + formatPYG(g.monto) + '</span></div>' +
+      '<div class="gf-sub">' +
+        (venceTxt ? '<span>⏰ ' + venceTxt + '</span>' : '') +
+        '<span class="gf-badge">' + esc(g.categoria || '') + '</span>' + planillaTag +
+        '<span>👤 ' + esc(g.persona || 'Yo') + '</span>' +
+        overdueTxt + todayTxt +
+      '</div>' +
+    '</div>' +
+    '<div class="gf-item-actions">' +
+      '<button type="button" class="gf-edit-btn" data-gf-edit="' + esc(g.id) + '" title="Editar">✏️</button>' +
+      '<button type="button" class="gf-del-btn" data-gf-del="' + esc(g.id) + '" title="Eliminar">🗑️</button>' +
+    '</div>' +
+  '</div>';
+}
+
+/* Detecta si un gasto fijo es un descuento automático de planilla (por categoría o nombre) */
+function esDescuentoPlanillaGF(g){
+  if(!g) return false;
+  const cat = String(g.categoria || '').trim();
+  if(DESCUENTOS_PLANILLA_CATEGORIAS.indexOf(cat) > -1) return true;
+  const nombre = String(g.nombre || '').toLowerCase();
+  return DESCUENTOS_PLANILLA_PALABRAS.some(p => nombre.includes(p));
+}
+
 function renderGastosFijosList(){
   const cont = document.getElementById('gfLista');
   const titulo = document.getElementById('gfMesTitulo');
@@ -3401,47 +3638,38 @@ function renderGastosFijosList(){
     if(resumen) resumen.innerHTML = '';
     return;
   }
+  /* Separar descuentos automáticos de planilla de los gastos fijos normales */
+  const listaFiltrada = filtrarPorDescripcion(lista, _busquedaState.gf);
+  const planilla = listaFiltrada.filter(g => esDescuentoPlanillaGF(g));
+  const normales = listaFiltrada.filter(g => !esDescuentoPlanillaGF(g));
   let pagadosCount = 0, vencidos = 0, totalMes = 0;
-  lista.forEach(g => {
+  listaFiltrada.forEach(g => {
     const est = estadoGastoFijo(g);
     if(est === 'paid') pagadosCount++;
     else if(est === 'overdue') vencidos++;
     totalMes += Number(g.monto) || 0;
   });
-  const pagadosMonto = lista.reduce((s, g) => s + (estaPagoGastoFijo(g.id) ? (Number(g.monto) || 0) : 0), 0);
+  const pagadosMonto = listaFiltrada.reduce((s, g) => s + (estaPagoGastoFijo(g.id) ? (Number(g.monto) || 0) : 0), 0);
   if(resumen){
-    resumen.innerHTML = (lista.length === pagadosCount
-      ? '✅ Todos pagados (' + pagadosCount + ' de ' + lista.length + ')'
-      : (pagadosCount + ' de ' + lista.length + ' pagados'))
+    resumen.innerHTML = (listaFiltrada.length === pagadosCount
+      ? '✅ Todos pagados (' + pagadosCount + ' de ' + listaFiltrada.length + ')'
+      : (pagadosCount + ' de ' + listaFiltrada.length + ' pagados'))
       + (vencidos > 0 ? ' · <span class="gf-warn">🔴 ' + vencidos + ' vencido' + (vencidos === 1 ? '' : 's') + '</span>' : '');
   }
-  cont.innerHTML = lista.map(g => {
-    const est = estadoGastoFijo(g);
-    const done = est === 'paid';
-    const dia = Number(g.diaVencimiento) || 0;
-    const estadoCls = done ? 'gf-check-state-paid' : (est === 'overdue' ? 'gf-check-state-overdue' : (est === 'due-today' ? 'gf-check-state-today' : 'gf-check-state-default'));
-    const cls = 'gf-item' + (done ? ' gf-done' : '') + (est === 'overdue' ? ' gf-overdue' : '');
-    const check = done ? '✅' : '⭕';
-    const venceTxt = gastoFijoVenceTxt(g);
-    const overdueTxt = est === 'overdue' ? ' · <span class="gf-overdue-tag">🔴 Vencido</span>' : '';
-    const todayTxt = est === 'due-today' ? ' · <span class="gf-overdue-tag today">🟠 Vence hoy</span>' : '';
-    return '<div class="' + cls + '" data-gf="' + esc(g.id) + '">' +
-      '<button type="button" class="gf-check ' + estadoCls + '" data-gf-check="' + esc(g.id) + '" title="' + (done ? 'Desmarcar como pagado' : 'Marcar como pagado') + '">' + check + '</button>' +
-      '<div class="gf-body">' +
-        '<div class="gf-top"><span class="gf-nombre">' + esc(g.nombre || '') + '</span><span class="gf-monto">' + formatPYG(g.monto) + '</span></div>' +
-        '<div class="gf-sub">' +
-          (venceTxt ? '<span>⏰ ' + venceTxt + '</span>' : '') +
-          '<span class="gf-badge">' + esc(g.categoria || '') + '</span>' +
-          '<span>👤 ' + esc(g.persona || 'Yo') + '</span>' +
-          overdueTxt + todayTxt +
-        '</div>' +
-      '</div>' +
-      '<div class="gf-item-actions">' +
-        '<button type="button" class="gf-edit-btn" data-gf-edit="' + esc(g.id) + '" title="Editar">✏️</button>' +
-        '<button type="button" class="gf-del-btn" data-gf-del="' + esc(g.id) + '" title="Eliminar">🗑️</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
+  let html = '';
+  if(!listaFiltrada.length){
+    cont.innerHTML = '<div class="gf-empty">📭 No se encontraron gastos fijos con esa descripción</div>';
+    return;
+  }
+  if(planilla.length){
+    html += '<div class="gf-grupo-head">🏛️ Descuentos automáticos del sueldo</div>';
+    html += planilla.map(gfItemHtml).join('');
+  }
+  if(normales.length){
+    if(planilla.length) html += '<div class="gf-grupo-head">💳 Gastos fijos con plata disponible</div>';
+    html += normales.map(gfItemHtml).join('');
+  }
+  cont.innerHTML = html;
 }
 
 function renderGastosFijosResumen(){
@@ -4083,6 +4311,19 @@ function renderResumen(){
   ela.className = 'valor ' + (ahorro > 0 ? 'pos' : (ahorro < 0 ? 'neg' : 'zero'));
   animarValor(ela, ahorro, fmtPYG);
   document.getElementById('resumenPeriodoLbl').textContent = periodoLabel(prefix);
+
+  /* ---- Flujo de dinero real del mes: Bruto → Descuentos → Disponible → Vida → Ahorro ---- */
+  const descPlanilla = gs.reduce((s, g) => s + (esDescuentoPlanilla(g) ? (Number(g.monto) || 0) : 0), 0);
+  const disponible = tIng - descPlanilla;
+  const gastosVida = tGas - descPlanilla;
+  const ahorroReal = disponible - gastosVida;
+  animarValor(document.getElementById('flujoIngresoBruto'), tIng, fmtPYG);
+  animarValor(document.getElementById('flujoDescuentos'), descPlanilla, fmtPYG);
+  animarValor(document.getElementById('flujoDisponible'), disponible, fmtPYG);
+  animarValor(document.getElementById('flujoGastosVida'), gastosVida, fmtPYG);
+  const flA = document.getElementById('flujoAhorro');
+  flA.className = 'valor ' + (ahorroReal > 0 ? 'pos' : (ahorroReal < 0 ? 'neg' : 'zero'));
+  animarValor(flA, ahorroReal, fmtPYG);
 
   const agg = {};
   gs.forEach(g => { agg[g.categoria] = (agg[g.categoria] || 0) + (Number(g.monto)||0); });
