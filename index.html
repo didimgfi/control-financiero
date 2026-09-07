@@ -385,6 +385,8 @@ html.dark .deuda-estado.refinanciada{background:#78350F;color:#FDE68A}
 .btn-pago-cuota{background:linear-gradient(135deg,#10B981,#059669);color:#fff}
 .btn-masivos-deuda{background:linear-gradient(135deg,#6B5B95,#8B7BB8);color:#fff}
 .btn-historial-deuda{background:linear-gradient(135deg,#0EA5E9,#38BDF8);color:#fff}
+.btn-sync-deuda{background:#E2E8F0;color:#475569}
+html.dark .btn-sync-deuda{background:#1a1a2e;color:#CBD5E1}
 .btn-pago:disabled,.btn-pago-cuota:disabled,.btn-masivos-deuda:disabled{opacity:.5;cursor:not-allowed}
 .btn-edit-deuda{background:#EEF2F7;color:var(--texto)}
 .btn-del-deuda{background:#FEE2E2;color:var(--rojo)}
@@ -2838,6 +2840,7 @@ function renderDeudas(){
     return;
   }
   cont.innerHTML = lista.map(d => {
+    console.log('Render deuda:', d.nombre, '| cuotasPagadas:', d.cuotasPagadas, '| cuotasTotales:', d.cuotasTotales);
     const ini = Number(d.saldoInicial) || Number(d.saldoActual) || 0;
     const act = Number(d.saldoActual) || 0;
     const pct = ini > 0 ? Math.round(((ini - act) / ini) * 100) : 0;
@@ -2887,6 +2890,7 @@ function renderDeudas(){
         botonCuota +
         '<button type="button" class="btn-masivos-deuda" data-masivos-deuda="' + esc(d.id) + '" title="Registrar pagos anteriores">📜 Registrar pagos anteriores</button>' +
         '<button type="button" class="btn-historial-deuda" data-historial-deuda="' + esc(d.id) + '" title="Ver historial de pagos">🕘 Ver historial</button>' +
+        '<button type="button" class="btn-sync-deuda" data-sync-deuda="' + esc(d.id) + '" title="Sincronizar cuotas pagadas según el historial">🔄</button>' +
         '<button type="button" class="btn-edit-deuda" data-edit-deuda="' + esc(d.id) + '" title="Editar">✏️</button>' +
         '<button type="button" class="btn-del-deuda" data-del-deuda="' + esc(d.id) + '" title="Eliminar">🗑️</button>' +
       '</div>' +
@@ -3092,6 +3096,12 @@ document.getElementById('deudasCardsList').addEventListener('click', e => {
     if(d) abrirHistorialDeuda(d);
     return;
   }
+  const btnSync = e.target.closest('[data-sync-deuda]');
+  if(btnSync){
+    const d = (deudas || []).find(x => x.id === btnSync.dataset.syncDeuda);
+    if(d) sincronizarCuotasDeuda(d);
+    return;
+  }
   const btnEdit = e.target.closest('[data-edit-deuda]');
   if(btnEdit){
     const rec = (deudas || []).find(x => x.id === btnEdit.dataset.editDeuda);
@@ -3134,6 +3144,8 @@ function mesDeCuota(fechaInicio, n){
 
 function abrirModalMasivosDeuda(d){
   if(!d){ toast('Deuda no encontrada', 'error'); return; }
+  const fresca = (deudas || []).find(x => x.id === d.id) || d;
+  d = fresca;
   masivosDeudaActual = d;
   document.getElementById('masivosDeudaNombre').textContent = d.nombre || d.entidad || 'La deuda';
   document.getElementById('masivosCuotas').value = '';
@@ -3269,51 +3281,55 @@ function confirmarMasivosConOpcion(d, n, fIni, crearGastos, montoCuota, nuevoSal
   c.querySelector('#masivosOptCancelar').addEventListener('click', () => { c.innerHTML = original; c.hidden = true; });
 }
 
-function ejecutarMasivosDeuda(d, n, fIni, crearGastos, montoCuota, nuevoSaldo, saldoInicial, modo){
+async function ejecutarMasivosDeuda(d, n, fIni, crearGastos, montoCuota, nuevoSaldo, saldoInicial, modo){
   const btn = document.getElementById('masivosConfirmar');
   if(btn) btn.disabled = true;
-  const promesas = [];
+  const deudaId = d.id;
+  try {
+    /* 1) Si modo "reemplazar": eliminar los pagos existentes de esta deuda. */
+    if(modo === 'reemplazar'){
+      const ids = pagosExistentesDeuda(deudaId).map(r => r.id).filter(Boolean);
+      for(let i = 0; i < ids.length; i++){
+        if(ids[i]) await removeRecord(ids[i]);
+      }
+    }
 
-  /* Si modo "reemplazar": eliminar los pagos existentes de esta deuda */
-  if(modo === 'reemplazar'){
-    const ids = pagosExistentesDeuda(d.id).map(r => r.id).filter(Boolean);
-    ids.forEach(id => { if(id) promesas.push(removeRecord(id)); });
-  }
+    /* 2) Crear los registros de pago en "registros" (uno por cuota ya pagada). */
+    if(crearGastos && n > 0){
+      await crearRegistrosMasivosDeuda(d, n, fIni, montoCuota);
+    }
 
-  const promGastos = (crearGastos && n > 0)
-    ? crearRegistrosMasivosDeuda(d, n, fIni, montoCuota)
-    : Promise.resolve();
-  promesas.push(promGastos);
+    /* 3) ACTUALIZAR LA DEUDA con el valor EXACTO de cuotasPagadas (nunca incrementar).
+          Usar update() directo para garantizar escritura en Firestore. */
+    const mesUltima = (n > 0 && fIni) ? mesDeCuota(fIni, n - 1) : (n > 0 ? mesActualKey() : undefined);
+    const cambios = {
+      cuotasPagadas: n,               // valor exacto ingresado por el usuario (ej: 27)
+      saldoActual: nuevoSaldo,        // saldoInicial - (cuotasPagadas * cuotaMensual)
+      estado: nuevoSaldo > 0 ? 'activa' : 'pagada'
+    };
+    if(mesUltima) cambios.mesUltimaCuota = mesUltima;
+    if(n > 0) cambios.ultimaCuotaPagada = tsField();
 
-  const mesUltima = (n > 0 && fIni) ? mesDeCuota(fIni, n - 1) : (n > 0 ? mesActualKey() : undefined);
-  const cambios = {
-    cuotasPagadas: n,
-    saldoActual: nuevoSaldo,
-    estado: nuevoSaldo > 0 ? 'activa' : 'pagada'
-  };
-  if(mesUltima) cambios.mesUltimaCuota = mesUltima;
-  if(n > 0) cambios.ultimaCuotaPagada = tsField();
-  promesas.push(updateDeudaRec(d.id, cambios));
+    await updateDeudaRec(deudaId, cambios);
+    console.log('Pagos anteriores ⇒ deuda actualizada:', { id: deudaId, cuotasPagadas: n, saldoActual: nuevoSaldo, estado: cambios.estado });
 
-  Promise.all(promesas).then(() => {
-    if(btn) btn.disabled = false;
-    console.log('Deuda actualizada:', { id: d.id, cuotasPagadas: n, saldoActual: nuevoSaldo, estado: cambios.estado });
-    /* Actualización local inmediata (sin esperar el onSnapshot de "deudas")
-       para que la card refleje cuotasPagadas/saldo al instante. */
-    const idx = (deudas || []).findIndex(x => x.id === d.id);
+    /* 4) Forzar actualización local inmediata (sin esperar el onSnapshot)
+          para que la card muestre "27 de 60" al instante. */
+    const idx = (deudas || []).findIndex(x => x.id === deudaId);
     if(idx > -1){
       deudas[idx] = Object.assign({}, deudas[idx], { cuotasPagadas: n, saldoActual: nuevoSaldo, estado: cambios.estado });
     }
+    if(btn) btn.disabled = false;
     cerrarModalMasivosDeuda();
     toast('✅ ' + n + ' pago' + (n === 1 ? '' : 's') + ' registrado' + (n === 1 ? '' : 's') + '. Saldo actual actualizado a ' + formatPYG(nuevoSaldo) + '.', 'success');
     vibrar(80);
     renderAll();
-  }).catch(err => {
+  } catch(err) {
     if(btn) btn.disabled = false;
-    console.error(err);
+    console.error('Error al registrar pagos anteriores:', err);
     toast('No se pudieron registrar los pagos', 'error');
     vibrar(25);
-  });
+  }
 }
 
 function crearRegistrosMasivosDeuda(d, n, fIni, montoCuota){
@@ -3337,6 +3353,9 @@ let historialDeudaActual = null;
 
 function abrirHistorialDeuda(d){
   if(!d){ toast('Deuda no encontrada', 'error'); return; }
+  /* Tomar la versión más reciente del estado local para reflejar cuotasPagadas de Firestore. */
+  const fresca = (deudas || []).find(x => x.id === d.id) || d;
+  d = fresca;
   historialDeudaActual = d;
   document.getElementById('historialTitulo').textContent = '🕘 Historial de pagos - ' + (d.nombre || d.entidad || 'deuda');
 
@@ -3414,6 +3433,38 @@ document.getElementById('historialCerrar').addEventListener('click', cerrarHisto
 document.getElementById('historialBackdrop').addEventListener('click', e => {
   if(e.target === document.getElementById('historialBackdrop')) cerrarHistorialDeuda();
 });
+
+/* ------------------ SINCRONIZAR / REPARAR CUOTAS PAGADAS ------------------ */
+function sincronizarCuotasDeuda(d){
+  if(!d){ toast('Deuda no encontrada', 'error'); return; }
+  const btnActual = document.querySelector('[data-sync-deuda="' + esc(d.id) + '"]');
+  if(btnActual) btnActual.disabled = true;
+
+  const totalPagosEncontrados = pagosExistentesDeuda(d.id).length;
+  const saldoInicial = Number(d.saldoInicial) || 0;
+  const cuotaMensual = Number(d.cuotaMensual) || 0;
+  const nuevoSaldo = Math.max(0, saldoInicial - (totalPagosEncontrados * cuotaMensual));
+
+  updateDeudaRec(d.id, {
+    cuotasPagadas: totalPagosEncontrados,
+    saldoActual: nuevoSaldo
+  }).then(() => {
+    console.log('Sincronizar cuotas ⇒ deuda actualizada:', { id: d.id, cuotasPagadas: totalPagosEncontrados, saldoActual: nuevoSaldo });
+    const idx = (deudas || []).findIndex(x => x.id === d.id);
+    if(idx > -1){
+      deudas[idx] = Object.assign({}, deudas[idx], { cuotasPagadas: totalPagosEncontrados, saldoActual: nuevoSaldo });
+    }
+    if(btnActual) btnActual.disabled = false;
+    toast('Sincronizado: ' + totalPagosEncontrados + ' cuota' + (totalPagosEncontrados === 1 ? '' : 's') + ' encontradas en el historial', 'success');
+    vibrar(50);
+    renderAll();
+  }).catch(err => {
+    if(btnActual) btnActual.disabled = false;
+    console.error('Error al sincronizar cuotas:', err);
+    toast('No se pudo sincronizar la deuda', 'error');
+    vibrar(25);
+  });
+}
 
 const CATEGORIAS_META = [
   { v:'emergencia', e:'🚨', n:'Emergencia' },
