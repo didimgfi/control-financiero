@@ -383,7 +383,8 @@ html.dark .deuda-estado.refinanciada{background:#78350F;color:#FDE68A}
 .deuda-card-actions button:active{transform:scale(.98)}
 .btn-pago{background:linear-gradient(135deg,#E07A5F,#C95D3E);color:#fff}
 .btn-pago-cuota{background:linear-gradient(135deg,#10B981,#059669);color:#fff}
-.btn-pago:disabled,.btn-pago-cuota:disabled{opacity:.5;cursor:not-allowed}
+.btn-masivos-deuda{background:linear-gradient(135deg,#6B5B95,#8B7BB8);color:#fff}
+.btn-pago:disabled,.btn-pago-cuota:disabled,.btn-masivos-deuda:disabled{opacity:.5;cursor:not-allowed}
 .btn-edit-deuda{background:#EEF2F7;color:var(--texto)}
 .btn-del-deuda{background:#FEE2E2;color:var(--rojo)}
 html.dark .btn-edit-deuda{background:#1a1a2e;color:#CBD5E1}
@@ -415,6 +416,7 @@ html.dark .pago-x{background:#1a1a2e;color:#CBD5E1}
 html.dark #btnPagoCancelar{background:#1a1a2e;color:#CBD5E1}
 @media(max-width:767px){
   .deuda-card-actions button{font-size:.8rem;padding:0 4px}
+  .deuda-card-actions .btn-masivos-deuda{white-space:normal;line-height:1.15;flex-basis:100%}
 }
 
 /* ---- Pestaña metas: objetivos de ahorro (colección "metas") ---- */
@@ -575,6 +577,30 @@ html.dark .gf-badge.planilla{background:#334155;color:#CBD5E1}
 .sheets-modal-tip{margin:0 0 18px;padding:10px 12px;background:rgba(129,178,154,.14);border-radius:10px;font-size:.84rem;color:var(--texto,#1e293b);text-align:left}
 .sheets-modal-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .sheets-modal-actions .btn{min-height:44px}
+
+/* ---- Modal: registrar pagos anteriores de una deuda ---- */
+.masivos-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.6);display:flex;align-items:center;justify-content:center;z-index:1200;padding:16px;backdrop-filter:blur(3px);animation:backdropIn .25s ease}
+.masivos-backdrop[hidden]{display:none}
+.masivos-card{background:var(--card,#fff);border:1px solid var(--borde,#e5e7eb);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.3);width:100%;max-width:440px;max-height:92vh;overflow-y:auto;padding:20px;animation:gfPop .22s ease}
+.masivos-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+.masivos-titulo{font-size:1.05rem;font-weight:800;color:var(--texto,#1e293b)}
+.masivos-x{border:none;background:none;font-size:1.1rem;color:var(--suave,#64748b);cursor:pointer;padding:6px;border-radius:6px}
+.masivos-x:hover{background:rgba(120,120,120,.12)}
+.masivos-deuda{margin:0 0 14px;font-size:.9rem;font-weight:700;color:var(--primario,#6B5B95);word-break:break-word}
+.masivos-body{display:flex;flex-direction:column;gap:12px}
+.masivos-body .field{display:flex;flex-direction:column;gap:5px;font-size:.84rem;font-weight:600;color:var(--suave,#64748b)}
+.masivos-body .field input[type="number"],.masivos-body .field input[type="date"]{border:1px solid var(--borde,#e5e7eb);border-radius:12px;padding:12px;font-size:.95rem;background:var(--card,#fff);color:var(--texto,#1e293b);outline:none}
+.masivos-body .field input:focus{border-color:var(--primario,#6B5B95);box-shadow:0 0 0 3px rgba(107,91,149,.15)}
+.masivos-body .check-field{flex-direction:row;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:6px 10px}
+.masivos-body .check-field input[type="checkbox"]{width:20px;height:20px;accent-color:var(--primario,#6B5B95)}
+.masivos-body .check-field code{font-size:.8rem;font-weight:600;color:var(--suave,#64748b);flex-basis:100%}
+.masivos-info{margin-top:6px;padding:10px 12px;background:rgba(107,91,149,.1);border-radius:10px;font-size:.84rem;color:var(--texto,#1e293b);line-height:1.45}
+.masivos-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;flex-wrap:wrap}
+.btn-masivos-confirmar{background:linear-gradient(135deg,#6B5B95,#8B7BB8);color:#fff}
+.masivos-opciones{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.masivos-opc{display:flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;color:var(--texto,#1e293b);cursor:pointer;padding:6px 2px}
+.masivos-opc input[type="radio"]{width:18px;height:18px;accent-color:var(--primario,#6B5B95)}
+html.dark .masivos-body .field input[type="number"],html.dark .masivos-body .field input[type="date"]{background:#1e293b;color:#E2E8F0}
 .gf-modal-card{background:var(--card,#fff);border:1px solid var(--borde,#e5e7eb);border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.25);padding:18px;width:100%;max-width:420px;margin:0 auto;animation:gfPop .22s ease}
 @keyframes gfPop{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
 .gf-modal-card h3{margin:0 0 12px;font-size:1rem}
@@ -1561,6 +1587,38 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
     <div class="sheets-modal-actions">
       <button type="button" class="btn btn-cancel" id="sheetsModalReopen">Abrir Google Sheets de nuevo</button>
       <button type="button" class="btn btn-sheets" id="sheetsModalClose">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: registrar pagos anteriores de una deuda -->
+<div class="masivos-backdrop" id="masivosBackdrop" hidden>
+  <div class="masivos-card">
+    <div class="masivos-head">
+      <span class="masivos-titulo">📜 Registrar pagos anteriores</span>
+      <button type="button" class="masivos-x" id="masivosCerrar" aria-label="Cerrar">✕</button>
+    </div>
+    <p class="masivos-deuda" id="masivosDeudaNombre"></p>
+    <div class="masivos-body">
+      <label class="field"><span>🧮 ¿Cuántas cuotas ya pagaste?</span>
+        <input type="number" id="masivosCuotas" min="0" step="1" inputmode="numeric" placeholder="Ej: 27">
+      </label>
+      <label class="field"><span>📅 ¿Desde qué fecha empezaste a pagar?</span>
+        <input type="date" id="masivosFechaInicio">
+      </label>
+      <label class="field check-field"><span>💵 ¿La cuota fue siempre el mismo monto?</span>
+        <input type="checkbox" id="masivosMismoMonto" checked>
+        <code id="masivosMontoLbl">Usa la cuota mensual de la deuda</code>
+      </label>
+      <label class="field check-field"><span>🧾 ¿Crear los gastos en el historial?</span>
+        <input type="checkbox" id="masivosCrearGastos" checked>
+        <code>Se guardarán N registros de pago en el historial</code>
+      </label>
+      <div class="masivos-info" id="masivosInfo"></div>
+    </div>
+    <div class="masivos-actions">
+      <button type="button" class="btn btn-cancel" id="masivosCancelar">Cancelar</button>
+      <button type="button" class="btn btn-masivos-confirmar" id="masivosConfirmar">✔ Confirmar</button>
     </div>
   </div>
 </div>
@@ -2790,6 +2848,7 @@ function renderDeudas(){
       '<div class="deuda-card-actions">' +
         '<button type="button" class="btn-pago" data-pago="' + esc(d.id) + '"' + (pagable ? '' : ' disabled') + '>💰 Registrar pago</button>' +
         botonCuota +
+        '<button type="button" class="btn-masivos-deuda" data-masivos-deuda="' + esc(d.id) + '" title="Registrar pagos anteriores">📜 Registrar pagos anteriores</button>' +
         '<button type="button" class="btn-edit-deuda" data-edit-deuda="' + esc(d.id) + '" title="Editar">✏️</button>' +
         '<button type="button" class="btn-del-deuda" data-del-deuda="' + esc(d.id) + '" title="Eliminar">🗑️</button>' +
       '</div>' +
@@ -2983,6 +3042,12 @@ document.getElementById('deudasCardsList').addEventListener('click', e => {
   }
   const btnPago = e.target.closest('[data-pago]');
   if(btnPago){ abrirPagoDeuda(btnPago.dataset.pago); return; }
+  const btnMasivos = e.target.closest('[data-masivos-deuda]');
+  if(btnMasivos){
+    const d = (deudas || []).find(x => x.id === btnMasivos.dataset.masivosDeuda);
+    if(d) abrirModalMasivosDeuda(d);
+    return;
+  }
   const btnEdit = e.target.closest('[data-edit-deuda]');
   if(btnEdit){
     const rec = (deudas || []).find(x => x.id === btnEdit.dataset.editDeuda);
@@ -3004,6 +3069,216 @@ document.getElementById('deudasCardsList').addEventListener('click', e => {
   const el = document.getElementById(id);
   if(el) el.addEventListener('change', renderDeudas);
 });
+
+/* ------------------ REGISTRAR PAGOS ANTERIORES (MASIVO) ------------------ */
+
+let masivosDeudaActual = null;
+
+function pagosExistentesDeuda(deudaId){
+  return (gastos || []).filter(r => r.tipo === 'gasto' && r.esDeuda === true && r.deudaId === deudaId);
+}
+
+function contarMesUnicoPago(fecha){
+  return String(fecha || '').slice(0, 7);
+}
+
+function mesDeCuota(fechaInicio, n){
+  const base = fechaInicio ? new Date(String(fechaInicio).slice(0,4), Number(String(fechaInicio).slice(5,7)) - 1, 1) : new Date();
+  const fecha = new Date(base.getFullYear(), base.getMonth() + n, 1);
+  return fecha.getFullYear() + '-' + String(fecha.getMonth() + 1).padStart(2, '0');
+}
+
+function abrirModalMasivosDeuda(d){
+  if(!d){ toast('Deuda no encontrada', 'error'); return; }
+  masivosDeudaActual = d;
+  document.getElementById('masivosDeudaNombre').textContent = d.nombre || d.entidad || 'La deuda';
+  document.getElementById('masivosCuotas').value = '';
+  document.getElementById('masivosFechaInicio').value = d.fechaInicio ? d.fechaInicio.slice(0, 10) : hoy();
+  document.getElementById('masivosMismoMonto').checked = true;
+  document.getElementById('masivosCrearGastos').checked = true;
+  document.getElementById('masivosMontoLbl').textContent = 'Usa la cuota mensual de la deuda';
+  actualizarMasivosInfo();
+  document.getElementById('masivosBackdrop').hidden = false;
+  setTimeout(() => { const el = document.getElementById('masivosCuotas'); if(el) el.focus(); }, 60);
+}
+
+function cerrarModalMasivosDeuda(){
+  document.getElementById('masivosBackdrop').hidden = true;
+  masivosDeudaActual = null;
+}
+
+function actualizarMasivosInfo(){
+  const d = masivosDeudaActual;
+  if(!d) return;
+  const n = Math.max(0, parseInt(document.getElementById('masivosCuotas').value, 10) || 0);
+  const fIni = document.getElementById('masivosFechaInicio').value || '';
+  const crearGastos = document.getElementById('masivosCrearGastos').checked;
+  const info = document.getElementById('masivosInfo');
+  if(!info) return;
+  const tot = Number(d.cuotasTotales) || 0;
+  const exis = pagosExistentesDeuda(d.id).length;
+  let txt = '';
+  if(n > 0){
+    const primerMes = fIni ? String(fIni).slice(0,7) : '';
+    const ultimoMes = n > 0 && fIni ? mesDeCuota(fIni, n - 1) : '';
+    txt = crearGastos
+      ? 'Se crearán <b>' + n + '</b> registros de pago'
+      : 'Se actualizarán la deuda con <b>' + n + '</b> cuota' + (n === 1 ? '' : 's') + ' pagada' + (n === 1 ? '' : 's') + ' (sin registros en el historial)';
+    if(fIni) txt += ' desde <b>' + String(fIni).slice(0,7) + '</b>';
+    if(ultimoMes) txt += ' hasta <b>' + ultimoMes + '</b>';
+    txt += '.';
+  } else {
+    txt = 'Ingresa la cantidad de cuotas ya pagadas.';
+  }
+  if(exis > 0){
+    txt += '<br><span style="color:var(--rojo,#ef4444)">⚠ Ya existen ' + exis + ' pago' + (exis === 1 ? '' : 's') + ' para esta deuda.</span>';
+  }
+  if(tot > 0 && n > tot){
+    txt += '<br><span style="color:var(--rojo,#ef4444)">⚠ ' + n + ' superan las ' + tot + ' cuotas totales.</span>';
+  }
+  info.innerHTML = txt;
+}
+
+document.getElementById('masivosCuotas').addEventListener('input', actualizarMasivosInfo);
+document.getElementById('masivosFechaInicio').addEventListener('input', actualizarMasivosInfo);
+document.getElementById('masivosCrearGastos').addEventListener('change', actualizarMasivosInfo);
+document.getElementById('masivosMismoMonto').addEventListener('change', () => {
+  document.getElementById('masivosMontoLbl').textContent = document.getElementById('masivosMismoMonto').checked
+    ? 'Usa la cuota mensual de la deuda'
+    : 'Monto variable (editable en futuras versiones)';
+});
+document.getElementById('masivosCerrar').addEventListener('click', cerrarModalMasivosDeuda);
+document.getElementById('masivosCancelar').addEventListener('click', cerrarModalMasivosDeuda);
+document.getElementById('masivosBackdrop').addEventListener('click', e => {
+  if(e.target === document.getElementById('masivosBackdrop')) cerrarModalMasivosDeuda();
+});
+
+document.getElementById('masivosConfirmar').addEventListener('click', () => {
+  const d = masivosDeudaActual;
+  if(!d){ cerrarModalMasivosDeuda(); return; }
+  const n = parseInt(document.getElementById('masivosCuotas').value, 10);
+  const fIni = document.getElementById('masivosFechaInicio').value || '';
+  const crearGastos = document.getElementById('masivosCrearGastos').checked;
+
+  if(!(n >= 0 && isFinite(n))){ toast('Ingresa una cantidad de cuotas válida', 'error'); return; }
+
+  const tot = Number(d.cuotasTotales) || 0;
+  if(tot > 0 && n > tot){
+    toast('No puede superar las ' + tot + ' cuotas totales de la deuda', 'error');
+    return;
+  }
+
+  const montoCuota = Number(d.cuotaMensual) || 0;
+  if(n > 0 && crearGastos && !(montoCuota > 0)){
+    toast('Configura la cuota mensual de la deuda para crear los registros', 'error');
+    return;
+  }
+
+  const saldoInicial = Number(d.saldoInicial) || 0;
+  const calcSaldo = saldoInicial - (n * montoCuota);
+  if(calcSaldo < 0){
+    toast('El cálculo da saldo negativo (' + formatPYG(calcSaldo) + '). Verificá la cantidad de cuotas o el monto.', 'error');
+    return;
+  }
+  const nuevoSaldo = calcSaldo;
+
+  /* Si ya existen pagos: preguntar reemplazar o sumar */
+  const exis = pagosExistentesDeuda(d.id);
+  if(exis.length > 0){
+    confirmarMasivosConOpcion(d, n, fIni, crearGastos, montoCuota, nuevoSaldo, saldoInicial);
+    return;
+  }
+
+  ejecutarMasivosDeuda(d, n, fIni, crearGastos, montoCuota, nuevoSaldo, saldoInicial, 'sumar');
+});
+
+function confirmarMasivosConOpcion(d, n, fIni, crearGastos, montoCuota, nuevoSaldo, saldoInicial){
+  const exisCount = pagosExistentesDeuda(d.id).length;
+  const c = document.getElementById('masivosBackdrop');
+  const original = c.innerHTML;
+  c.innerHTML =
+    '<div class="interstitial">' +
+      '<p style="margin:0 0 8px;font-weight:800;color:var(--texto,#1e293b)">⚠ Ya existen ' + exisCount + ' pago' + (exisCount === 1 ? '' : 's') + ' para esta deuda.</p>' +
+      '<p style="margin:0 0 8px;font-size:.85rem;color:var(--suave,#64748b)">¿Qué querés hacer?</p>' +
+      '<div class="masivos-opciones">' +
+        '<label class="masivos-opc"><input type="radio" name="masivosModo" value="sumar" checked><span>➕ Sumar a los existentes</span></label>' +
+        '<label class="masivos-opc"><input type="radio" name="masivosModo" value="reemplazar"><span>🔄 Reemplazar los existentes</span></label>' +
+      '</div>' +
+    '</div>' +
+    '<div class="masivos-actions" style="margin-top:18px">' +
+      '<button type="button" class="btn btn-cancel" id="masivosOptCancelar">Cancelar</button>' +
+      '<button type="button" class="btn btn-masivos-confirmar" id="masivosOptAceptar">Aceptar</button>' +
+    '</div>';
+  c.hidden = false;
+
+  const modoSel = () => {
+    const sel = c.querySelector('input[name="masivosModo"]:checked');
+    return sel ? sel.value : 'sumar';
+  };
+  const accion = () => {
+    const modo = modoSel();
+    c.innerHTML = original;
+    c.hidden = true;
+    ejecutarMasivosDeuda(d, n, fIni, crearGastos, montoCuota, nuevoSaldo, saldoInicial, modo);
+  };
+  c.querySelector('#masivosOptAceptar').addEventListener('click', accion);
+  c.querySelector('#masivosOptCancelar').addEventListener('click', () => { c.innerHTML = original; c.hidden = true; });
+}
+
+function ejecutarMasivosDeuda(d, n, fIni, crearGastos, montoCuota, nuevoSaldo, saldoInicial, modo){
+  const btn = document.getElementById('masivosConfirmar');
+  if(btn) btn.disabled = true;
+  const promesas = [];
+
+  /* Si modo "reemplazar": eliminar los pagos existentes de esta deuda */
+  if(modo === 'reemplazar'){
+    const ids = pagosExistentesDeuda(d.id).map(r => r.id).filter(Boolean);
+    ids.forEach(id => { if(id) promesas.push(removeRecord(id)); });
+  }
+
+  const promGastos = (crearGastos && n > 0)
+    ? crearRegistrosMasivosDeuda(d, n, fIni, montoCuota)
+    : Promise.resolve();
+  promesas.push(promGastos);
+
+  const mesUltima = (n > 0 && fIni) ? mesDeCuota(fIni, n - 1) : (n > 0 ? mesActualKey() : undefined);
+  const cambios = {
+    cuotasPagadas: n,
+    saldoActual: nuevoSaldo,
+    estado: nuevoSaldo > 0 ? 'activa' : 'pagada'
+  };
+  if(mesUltima) cambios.mesUltimaCuota = mesUltima;
+  if(n > 0) cambios.ultimaCuotaPagada = tsField();
+  promesas.push(updateDeudaRec(d.id, cambios));
+
+  Promise.all(promesas).then(() => {
+    if(btn) btn.disabled = false;
+    cerrarModalMasivosDeuda();
+    toast('✅ ' + n + ' pago' + (n === 1 ? '' : 's') + ' registrado' + (n === 1 ? '' : 's') + '. Saldo actual actualizado a ' + formatPYG(nuevoSaldo) + '.', 'success');
+    vibrar(80);
+    renderAll();
+  }).catch(err => {
+    if(btn) btn.disabled = false;
+    console.error(err);
+    toast('No se pudieron registrar los pagos', 'error');
+    vibrar(25);
+  });
+}
+
+function crearRegistrosMasivosDeuda(d, n, fIni, montoCuota){
+  const persona = (typeof getNombreUsuario === 'function' ? getNombreUsuario() : '') || 'Yo';
+  const ops = [];
+  for(let i = 0; i < n; i++){
+    const fecha = fIni ? mesDeCuota(fIni, i) + '-01' : '';
+    const desc = 'Cuota ' + (d.nombre || '') + ' - ' + (fecha ? (MESES[Number(fecha.slice(5,7)) - 1] + ' ' + fecha.slice(0,4)) : '');
+    ops.push(addGastoRec({
+      id: newId(), fecha: fecha, descripcion: desc, categoria: 'Deudas',
+      monto: montoCuota, metodoPago: 'Efectivo', comentarios: 'Pago registrado en bloque',
+      persona: persona, tipoGasto: 'fijo', esDeuda: true, deudaId: d.id
+    }));
+  }
+  return Promise.all(ops);
+}
 
 /* ------------------ METAS: OBJETIVOS DE AHORRO (colección "metas") ------------------ */
 
