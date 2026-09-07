@@ -3142,6 +3142,29 @@ function mesDeCuota(fechaInicio, n){
   return fecha.getFullYear() + '-' + String(fecha.getMonth() + 1).padStart(2, '0');
 }
 
+/* Cálculo ÚNICO del saldo restante: saldoInicial - (cuotasPagadas * cuotaMensual).
+   Usa SIEMPRE los datos de la deuda recibida (nunca variables de otra deuda). */
+function calcularSaldoRestante(deuda, cuotasPagadas){
+  const saldoInicial = Number(deuda && deuda.saldoInicial) || 0;
+  const cuotaMes = Number(deuda && deuda.cuotaMensual) || 0;
+  const n = Math.max(0, Number(cuotasPagadas) || 0);
+  const saldoCalculado = saldoInicial - (n * cuotaMes);
+  console.log('Calcular saldo:', {
+    deuda: deuda && deuda.nombre,
+    saldoInicial: saldoInicial,
+    cuotasPagadas: n,
+    cuotaMensual: cuotaMes,
+    saldoCalculado: saldoCalculado
+  });
+  let saldo = saldoCalculado;
+  if(saldo < 0){ saldo = 0; console.warn('Saldo calculado negativo, ajustado a 0:', { deuda: deuda && deuda.nombre, deudaId: deuda && deuda.id }); }
+  if(saldo > saldoInicial){
+    console.error('Saldo calculado mayor al inicial:', { deuda: deuda && deuda.nombre, deudaId: deuda && deuda.id, saldoInicial: saldoInicial, saldoCalculado: saldo });
+    saldo = saldoInicial;
+  }
+  return saldo;
+}
+
 function abrirModalMasivosDeuda(d){
   if(!d){ toast('Deuda no encontrada', 'error'); return; }
   const fresca = (deudas || []).find(x => x.id === d.id) || d;
@@ -3230,13 +3253,9 @@ document.getElementById('masivosConfirmar').addEventListener('click', () => {
     return;
   }
 
+  /* Saldo calculado con la fórmula única y los datos EXCLUSIVOS de esta deuda. */
   const saldoInicial = Number(d.saldoInicial) || 0;
-  const calcSaldo = saldoInicial - (n * montoCuota);
-  if(calcSaldo < 0){
-    toast('El cálculo da saldo negativo (' + formatPYG(calcSaldo) + '). Verificá la cantidad de cuotas o el monto.', 'error');
-    return;
-  }
-  const nuevoSaldo = calcSaldo;
+  const nuevoSaldo = calcularSaldoRestante(d, n);
 
   /* Si ya existen pagos: preguntar reemplazar o sumar */
   const exis = pagosExistentesDeuda(d.id);
@@ -3300,18 +3319,23 @@ async function ejecutarMasivosDeuda(d, n, fIni, crearGastos, montoCuota, nuevoSa
     }
 
     /* 3) ACTUALIZAR LA DEUDA con el valor EXACTO de cuotasPagadas (nunca incrementar).
-          Usar update() directo para garantizar escritura en Firestore. */
+          Usar update() directo para garantizar escritura en Firestore.
+          El saldo se recalcula SIEMPRE desde ESTA deuda (d.id, d.saldoInicial, d.cuotaMensual)
+          para evitar que se mezcle el saldo de otra deuda. */
+    const saldoFinal = calcularSaldoRestante(d, n);
+    if(saldoFinal !== nuevoSaldo) console.warn('Saldo recalculado difiere del provisto para ' + d.nombre + ':', { provisto: nuevoSaldo, recalculado: saldoFinal });
+    nuevoSaldo = saldoFinal;
     const mesUltima = (n > 0 && fIni) ? mesDeCuota(fIni, n - 1) : (n > 0 ? mesActualKey() : undefined);
     const cambios = {
       cuotasPagadas: n,               // valor exacto ingresado por el usuario (ej: 27)
-      saldoActual: nuevoSaldo,        // saldoInicial - (cuotasPagadas * cuotaMensual)
+      saldoActual: nuevoSaldo,        // saldoInicial - (cuotasPagadas * cuotaMensual) de ESTA deuda
       estado: nuevoSaldo > 0 ? 'activa' : 'pagada'
     };
     if(mesUltima) cambios.mesUltimaCuota = mesUltima;
     if(n > 0) cambios.ultimaCuotaPagada = tsField();
 
     await updateDeudaRec(deudaId, cambios);
-    console.log('Pagos anteriores ⇒ deuda actualizada:', { id: deudaId, cuotasPagadas: n, saldoActual: nuevoSaldo, estado: cambios.estado });
+    console.log('Pagos anteriores ⇒ deuda actualizada:', { id: deudaId, nombre: d.nombre, cuotasPagadas: n, saldoActual: nuevoSaldo, estado: cambios.estado });
 
     /* 4) Forzar actualización local inmediata (sin esperar el onSnapshot)
           para que la card muestre "27 de 60" al instante. */
@@ -3435,35 +3459,55 @@ document.getElementById('historialBackdrop').addEventListener('click', e => {
 });
 
 /* ------------------ SINCRONIZAR / REPARAR CUOTAS PAGADAS ------------------ */
-function sincronizarCuotasDeuda(d){
+async function sincronizarCuotasDeuda(d){
   if(!d){ toast('Deuda no encontrada', 'error'); return; }
-  const btnActual = document.querySelector('[data-sync-deuda="' + esc(d.id) + '"]');
+  const fresca = (deudas || []).find(x => x.id === d.id) || d;
+  d = fresca;
+  const deudaId = d.id;
+  const btnActual = document.querySelector('[data-sync-deuda="' + esc(deudaId) + '"]');
   if(btnActual) btnActual.disabled = true;
 
-  const totalPagosEncontrados = pagosExistentesDeuda(d.id).length;
-  const saldoInicial = Number(d.saldoInicial) || 0;
-  const cuotaMensual = Number(d.cuotaMensual) || 0;
-  const nuevoSaldo = Math.max(0, saldoInicial - (totalPagosEncontrados * cuotaMensual));
+  try {
+    /* Contar SOLO los registros de "registros" cuyo deudaId == ID de ESTA deuda.
+       Se consulta por esDeuda (filtro simple, sin requerir índice compuesto)
+       y se filtra deudaId/tipo en memoria para evitar consurrencia de índices. */
+    let totalPagosEncontrados = 0;
+    if(firestoreReady && db){
+      const snap = await db.collection('registros').where('esDeuda', '==', true).get();
+      let total = 0;
+      snap.forEach(doc => {
+        const r = doc.data();
+        if(r.tipo === 'gasto' && r.deudaId === deudaId) total++;
+      });
+      totalPagosEncontrados = total;
+    } else {
+      totalPagosEncontrados = pagosExistentesDeuda(deudaId).length;
+    }
+    console.log('Sincronizar cuotas ⇒ conteo de registros:', { deuda: d.nombre, deudaId: deudaId, totalEncontrados: totalPagosEncontrados });
 
-  updateDeudaRec(d.id, {
-    cuotasPagadas: totalPagosEncontrados,
-    saldoActual: nuevoSaldo
-  }).then(() => {
-    console.log('Sincronizar cuotas ⇒ deuda actualizada:', { id: d.id, cuotasPagadas: totalPagosEncontrados, saldoActual: nuevoSaldo });
-    const idx = (deudas || []).findIndex(x => x.id === d.id);
+    /* Saldo recalculado con los datos de ESTA deuda (saldoInicial y cuotaMensual). */
+    const nuevoSaldo = calcularSaldoRestante(d, totalPagosEncontrados);
+
+    await updateDeudaRec(deudaId, {
+      cuotasPagadas: totalPagosEncontrados,
+      saldoActual: nuevoSaldo
+    });
+    console.log('Sincronizar cuotas ⇒ deuda actualizada:', { id: deudaId, nombre: d.nombre, cuotasPagadas: totalPagosEncontrados, saldoActual: nuevoSaldo });
+
+    const idx = (deudas || []).findIndex(x => x.id === deudaId);
     if(idx > -1){
       deudas[idx] = Object.assign({}, deudas[idx], { cuotasPagadas: totalPagosEncontrados, saldoActual: nuevoSaldo });
     }
     if(btnActual) btnActual.disabled = false;
-    toast('Sincronizado: ' + totalPagosEncontrados + ' cuota' + (totalPagosEncontrados === 1 ? '' : 's') + ' encontradas en el historial', 'success');
+    toast('Sincronizado: ' + totalPagosEncontrados + ' cuota' + (totalPagosEncontrados === 1 ? '' : 's') + ' encontrada' + (totalPagosEncontrados === 1 ? '' : 's') + ' en el historial', 'success');
     vibrar(50);
     renderAll();
-  }).catch(err => {
+  } catch(err) {
     if(btnActual) btnActual.disabled = false;
     console.error('Error al sincronizar cuotas:', err);
     toast('No se pudo sincronizar la deuda', 'error');
     vibrar(25);
-  });
+  }
 }
 
 const CATEGORIAS_META = [
