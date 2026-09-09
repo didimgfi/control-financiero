@@ -364,6 +364,22 @@ html.dark .deuda-line b{color:#FFB39A}
 .deuda-saldo{font-size:clamp(1.4rem,5.5vw,1.9rem);font-weight:800;color:var(--rojo);margin:10px 0 2px}
 .deuda-card.risk-baja .deuda-saldo{color:var(--verde)}
 .deuda-card.est-pagada .deuda-saldo{color:var(--suave)}
+.deuda-total-restante{margin-top:10px}
+.deuda-total-restante .dt-r-label{display:block;font-size:.72rem;font-weight:800;color:var(--suave);letter-spacing:.3px;text-transform:uppercase}
+.deuda-total-restante .dt-r-valor{display:block;font-size:clamp(1.55rem,6vw,2.15rem);font-weight:800;color:var(--rojo);line-height:1.12;margin-top:2px}
+.deuda-card.risk-baja .deuda-total-restante .dt-r-valor{color:var(--verde)}
+.deuda-card.est-pagada .deuda-total-restante .dt-r-valor{color:var(--suave)}
+.deuda-total-restante .dt-r-sub{display:block;font-size:.72rem;color:var(--suave);font-weight:600;margin-top:1px}
+.deuda-detalles{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:10px;font-size:.78rem;color:var(--suave);font-weight:600}
+.deuda-detalles .dt-item{display:flex;flex-direction:column;gap:1px}
+.deuda-detalles .dt-item span{display:flex;align-items:center;gap:4px}
+.deuda-detalles .dt-item b{color:var(--texto);font-size:.92rem}
+.deuda-detalles .dt-item em{font-style:normal;font-size:.68rem;color:var(--suave);opacity:.85}
+.deuda-detalles .dt-intereses b{color:#EA580C}
+html.dark .deuda-card .deuda-total-restante .dt-r-valor{color:#4ADE80}
+html.dark .deuda-card.est-pagada .deuda-total-restante .dt-r-valor{color:#94A3B8}
+html.dark .deuda-detalles .dt-item b{color:#E2E8F0}
+html.dark .deuda-detalles .dt-intereses b{color:#FB923C}
 .deuda-progress{height:8px;border-radius:999px;background:var(--borde);overflow:hidden;margin:10px 0 4px}
 .deuda-progress .fill{height:100%;border-radius:999px;background:var(--primario);transition:width .35s ease}
 .deuda-card.risk-alta .deuda-progress .fill{background:var(--rojo)}
@@ -420,6 +436,7 @@ html.dark #btnPagoCancelar{background:#1a1a2e;color:#CBD5E1}
 @media(max-width:767px){
   .deuda-card-actions button{font-size:.8rem;padding:0 4px}
   .deuda-card-actions .btn-masivos-deuda{white-space:normal;line-height:1.15;flex-basis:100%}
+  .deuda-detalles{flex-direction:column;gap:6px}
   .historial-card{max-width:100%;border-radius:14px}
 }
 
@@ -623,6 +640,12 @@ html.dark .gf-badge.planilla{background:#334155;color:#CBD5E1}
 .historial-table .monto{font-weight:700;color:var(--verde,#047857);white-space:nowrap}
 .historial-vacio{padding:20px 6px;font-size:.88rem;color:var(--suave,#64748b);line-height:1.5}
 .historial-sinDetalle{font-size:.84rem;color:var(--suave,#64748b);line-height:1.5}
+.historial-avance{margin-top:14px;padding:10px 12px;background:rgba(100,116,139,.07);border-radius:10px;font-size:.84rem;color:var(--texto,#1e293b);line-height:1.7}
+.historial-avance .hr-line{display:flex;justify-content:space-between;gap:10px}
+.historial-avance .hr-line:last-child{color:#EA580C}
+.historial-avance .hr-line:last-child b{color:#EA580C}
+html.dark .historial-avance{background:rgba(51,65,85,.35)}
+html.dark .historial-avance .hr-line:last-child,html.dark .historial-avance .hr-line:last-child b{color:#FB923C}
 html.dark .historial-card{background:#1e293b}
 html.dark .historial-table th{background:#1e293b}
 html.dark .historial-table th,html.dark .historial-table td{border-color:#334155}
@@ -2849,8 +2872,20 @@ function renderDeudas(){
     const tasa = formatTasaDeuda(d);
     const tot = Number(d.cuotasTotales) || 0;
     const pag = Number(d.cuotasPagadas) || 0;
+    const cuotaMes = Number(d.cuotaMensual) || 0;
     const dia = Number(d.diaVencimiento) || null;
     const pagable = est === 'activa' && act > 0;
+
+    /* Montos calculados automáticamente (el usuario solo carga el préstamo original).
+       totalRestante = (cuotasTotales - cuotasPagadas) × cuotaMensual (nunca negativo)
+       capitalRestante = saldoActual
+       totalPrestamoConIntereses = cuotasTotales × cuotaMensual
+       interesesTotales = totalPrestamoConIntereses - saldoInicial */
+    const totalPrestamoConIntereses = tot * cuotaMes;
+    const totalRestante = Math.max(0, (tot - pag) * cuotaMes);
+    const capitalRestante = Math.max(0, act);
+    const interesesTotales = Math.max(0, totalPrestamoConIntereses - ini);
+    const tieneInfo = totalPrestamoConIntereses > 0;
 
     /* Cuota actual del sistema y estado */
     const mk = mesActualKey();
@@ -2876,7 +2911,18 @@ function renderDeudas(){
         (d.entidad ? '<span class="deuda-card-entidad">' + esc(d.entidad) + '</span>' : '') + '</span>' +
         '<span class="deuda-estado ' + est + '">' + (est === 'activa' ? 'Activa' : est === 'pagada' ? 'Pagada' : 'Refinanciada') + '</span>' +
       '</div>' +
-      '<div class="deuda-saldo">' + formatPYG(act) + '</div>' +
+      (tieneInfo
+        ? '<div class="deuda-total-restante">' +
+            '<span class="dt-r-label">💰 Total restante a pagar</span>' +
+            '<span class="dt-r-valor">' + formatPYG(totalRestante) + '</span>' +
+            '<span class="dt-r-sub">Incluye capital + intereses</span>' +
+          '</div>' +
+          '<div class="deuda-detalles">' +
+            '<div class="dt-item"><span>💵 Capital restante</span><b>' + formatPYG(capitalRestante) + '</b><em>Del préstamo original</em></div>' +
+            '<div class="dt-item"><span>📊 Total del préstamo</span><b>' + formatPYG(totalPrestamoConIntereses) + '</b></div>' +
+            '<div class="dt-item dt-intereses"><span>📈 Intereses totales</span><b>' + formatPYG(interesesTotales) + '</b></div>' +
+          '</div>'
+        : '<div class="deuda-saldo">' + formatPYG(act) + '</div>') +
       '<div class="deuda-progress"><div class="fill" style="width:' + Math.min(Math.max(pct,0),100) + '%"></div></div>' +
       '<div class="deuda-card-meta">' +
         (tasa ? '<span>Tasa: <b>' + esc(tasa) + '</b></span>' : '') +
@@ -3387,6 +3433,17 @@ function abrirHistorialDeuda(d){
   const cuotasTotales = Number(d.cuotasTotales) || 0;
   const cuotaMensual = Number(d.cuotaMensual) || 0;
   const totalPagado = cuotasPagadas * cuotaMensual;
+  /* Avance: capital amortizado = saldoInicial - capitalRestante(saldoActual);
+     intereses pagados = totalPagado - capitalAmortizado */
+  const saldoInicialH = Number(d.saldoInicial) || 0;
+  const capitalRestanteH = Math.max(0, Number(d.saldoActual) || 0);
+  const capitalAmortizado = Math.max(0, saldoInicialH - capitalRestanteH);
+  const interesesPagados = Math.max(0, totalPagado - capitalAmortizado);
+
+  const avanceHtml =
+    '<div class="hr-line"><span>💰 Total pagado hasta hoy:</span><b>' + formatPYG(totalPagado) + '</b></div>' +
+    '<div class="hr-line"><span>🏦 Capital amortizado:</span><b>' + formatPYG(capitalAmortizado) + '</b></div>' +
+    '<div class="hr-line"><span>📈 Intereses pagados hasta hoy:</span><b>' + formatPYG(interesesPagados) + '</b></div>';
 
   /* Resumen superior */
   const resumen = document.getElementById('historialResumen');
@@ -3437,12 +3494,14 @@ function abrirHistorialDeuda(d){
       '</tr>';
     });
     html += '</tbody></table>';
+    html += '<div class="historial-avance">' + avanceHtml + '</div>';
   } else {
     /* No hay registros individuales: mostrar aviso + resumen de la deuda */
     html += '<div class="historial-vacio">No se encontraron pagos registrados en el historial. Los pagos anteriores fueron aplicados al saldo pero no se crearon registros individuales.</div>' +
       '<div class="historial-sinDetalle" style="margin-top:10px">' +
         'Cuotas pagadas: <b>' + cuotasPagadas + ' de ' + (cuotasTotales || '—') + '</b> · Cuota mensual: <b>' + formatPYG(cuotaMensual) + '</b> · Saldo actual: <b>' + formatPYG(Number(d.saldoActual) || 0) + '</b>' +
-      '</div>';
+      '</div>' +
+      '<div class="historial-avance">' + avanceHtml + '</div>';
   }
   document.getElementById('historialBody').innerHTML = html;
   document.getElementById('historialBackdrop').hidden = false;
