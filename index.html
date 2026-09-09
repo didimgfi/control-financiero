@@ -653,6 +653,9 @@ html.dark .gf-badge.planilla{background:#334155;color:#CBD5E1}
 .historial-avance .hr-line:last-child b{color:#EA580C}
 html.dark .historial-avance{background:rgba(51,65,85,.35)}
 html.dark .historial-avance .hr-line:last-child,html.dark .historial-avance .hr-line:last-child b{color:#FB923C}
+.historial-table .row-actions{justify-content:center}
+.historial-table .btn-date,.historial-table .btn-del{min-height:34px;min-width:34px;padding:4px 8px;font-size:.9rem;border-radius:8px}
+.historial-tip{margin-top:12px;font-size:.78rem;color:var(--suave,#64748b);line-height:1.5;padding:8px 10px;background:rgba(100,116,139,.07);border-radius:8px}
 html.dark .historial-card{background:#1e293b}
 html.dark .historial-table th{background:#1e293b}
 html.dark .historial-table th,html.dark .historial-table td{border-color:#334155}
@@ -3508,9 +3511,19 @@ function abrirHistorialDeuda(d){
   if(!d){ toast('Deuda no encontrada', 'error'); return; }
   /* Tomar la versión más reciente del estado local para reflejar cuotasPagadas de Firestore. */
   const fresca = (deudas || []).find(x => x.id === d.id) || d;
-  d = fresca;
-  historialDeudaActual = d;
-  document.getElementById('historialTitulo').textContent = '🕘 Historial de pagos - ' + (d.nombre || d.entidad || 'deuda');
+  historialDeudaActual = fresca;
+  document.getElementById('historialTitulo').textContent = '🕘 Historial de pagos - ' + (fresca.nombre || fresca.entidad || 'deuda');
+  renderHistorialDeuda();
+  document.getElementById('historialBackdrop').hidden = false;
+}
+
+/* Renderiza (o re-renderiza) el contenido del modal de historial usando historialDeudaActual.
+   Se puede llamar de nuevo tras editar/eliminar una cuota sin cerrar la ventana. */
+function renderHistorialDeuda(){
+  if(!historialDeudaActual) return;
+  const fresca = (deudas || []).find(x => x.id === historialDeudaActual.id) || historialDeudaActual;
+  historialDeudaActual = fresca;
+  const d = fresca;
 
   const cuotasPagadas = Number(d.cuotasPagadas) || 0;
   const cuotasTotales = Number(d.cuotasTotales) || 0;
@@ -3550,34 +3563,35 @@ function abrirHistorialDeuda(d){
     '<div class="hr-line"><span>🧮 Cuotas pagadas:</span><b>' + cuotasPagadas + ' de ' + (cuotasTotales || '—') + '</b></div>' +
     '<div class="hr-line"><span>📅 Próxima cuota:</span><b>' + proxMes + '</b></div>';
 
-  /* Pagos reales desde "registros" (deudaId + esDeuda + tipo gasto) */
+  /* Pagos reales desde "registros" (deudaId + esDeuda + tipo gasto).
+     Se muestra UNA fila por registro (sin deduplicar por mes) para poder
+     corregir o eliminar cuotas específicas, incluso si hay duplicados. */
   const pagos = (gastos || [])
     .filter(r => r.tipo === 'gasto' && r.esDeuda === true && r.deudaId === d.id)
     .sort((a,b) => String(a.fecha || '').localeCompare(String(b.fecha || '')));
 
   let html = '';
   if(pagos.length){
-    html += '<table class="historial-table"><thead><tr><th>#</th><th>Fecha</th><th>Monto</th><th>Mes</th></tr></thead><tbody>';
-    const mesesVistos = {};
-    let contador = 0;
-    pagos.forEach(p => {
+    html += '<table class="historial-table"><thead><tr><th>#</th><th>Fecha</th><th>Monto</th><th>Mes</th><th>Acciones</th></tr></thead><tbody>';
+    pagos.forEach((p, idx) => {
       const fecha = p.fecha || '';
-      const mes = fecha.slice(0, 7);
-      if(mesesVistos[mes]) return; // no duplicar la misma cuota del mes
-      mesesVistos[mes] = true;
-      contador++;
       const mesLbl = fecha.length >= 7
         ? (MESES[Number(fecha.slice(5,7)) - 1] || '') + ' ' + fecha.slice(0,4)
         : '—';
       html += '<tr>' +
-        '<td>' + contador + '</td>' +
-        '<td>' + fmtFecha(fecha) + '</td>' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td class="row-date">' + fmtFecha(fecha) + '</td>' +
         '<td class="monto">' + formatPYG(p.monto) + '</td>' +
         '<td>' + mesLbl + '</td>' +
+        '<td class="row-action"><span class="row-actions">' +
+          '<button type="button" class="btn-date btn-hist-fecha" data-id="' + esc(p.id) + '" title="Editar fecha de la cuota">📅</button>' +
+          '<button type="button" class="btn-del btn-hist-del" data-id="' + esc(p.id) + '" title="Eliminar cuota">🗑️</button>' +
+        '</span></td>' +
       '</tr>';
     });
     html += '</tbody></table>';
     html += '<div class="historial-avance">' + avanceHtml + '</div>';
+    html += '<div class="historial-tip">📅 Tocá 📅 para corregir la fecha de una cuota · 🗑️ para eliminar una cuota mal cargada o duplicada (se recalcula el saldo).</div>';
   } else {
     /* No hay registros individuales: mostrar aviso + resumen de la deuda */
     html += '<div class="historial-vacio">No se encontraron pagos registrados en el historial. Los pagos anteriores fueron aplicados al saldo pero no se crearon registros individuales.</div>' +
@@ -3587,7 +3601,6 @@ function abrirHistorialDeuda(d){
       '<div class="historial-avance">' + avanceHtml + '</div>';
   }
   document.getElementById('historialBody').innerHTML = html;
-  document.getElementById('historialBackdrop').hidden = false;
 }
 
 function cerrarHistorialDeuda(){
@@ -3599,6 +3612,117 @@ document.getElementById('historialCerrar').addEventListener('click', cerrarHisto
 document.getElementById('historialBackdrop').addEventListener('click', e => {
   if(e.target === document.getElementById('historialBackdrop')) cerrarHistorialDeuda();
 });
+
+/* ------------------ ACCIONES POR CUOTA EN EL HISTORIAL ------------------ */
+
+document.getElementById('historialBody').addEventListener('click', e => {
+  const fechaBtn = e.target.closest('.btn-hist-fecha');
+  if(fechaBtn){
+    const tr = fechaBtn.closest('tr');
+    const td = tr ? tr.querySelector('.row-date') : null;
+    if(td) editarFechaCuotaHistorial(fechaBtn.dataset.id, td);
+    return;
+  }
+  const delBtn = e.target.closest('.btn-hist-del');
+  if(delBtn){
+    eliminarCuotaHistorial(delBtn.dataset.id);
+    return;
+  }
+});
+
+/* Edición inline de la fecha de una cuota dentro del historial. */
+function editarFechaCuotaHistorial(id, td){
+  const rec = (gastos || []).find(r => r.id === id);
+  if(!rec || !td){ toast('Cuota no encontrada', 'error'); return; }
+  const fechaActual = String(rec.fecha || '').slice(0, 10) || '';
+  const originalHtml = td.innerHTML;
+
+  const input = document.createElement('input');
+  input.type = 'date';
+  input.value = fechaActual;
+  input.className = 'fecha-inline-input';
+  input.setAttribute('aria-label', 'Editar fecha de la cuota');
+  td.textContent = '';
+  td.appendChild(input);
+
+  let done = false;
+
+  const restaurar = () => {
+    if(done) return;
+    done = true;
+    td.innerHTML = originalHtml;
+  };
+
+  const guardar = () => {
+    if(done) return;
+    const nueva = input.value || '';
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(nueva) || nueva === fechaActual){
+      restaurar();
+      return;
+    }
+    done = true;
+    input.disabled = true;
+    updateRecord(id, { fecha: nueva }).then(() => {
+      toast('📅 Fecha de la cuota actualizada', 'success');
+      vibrar(40);
+      renderHistorialDeuda();
+    }).catch(err => {
+      done = false;
+      input.disabled = false;
+      console.error('Error al actualizar fecha de la cuota:', err);
+      toast('No se pudo actualizar la fecha', 'error');
+      td.innerHTML = originalHtml;
+    });
+  };
+
+  input.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){ e.preventDefault(); guardar(); }
+    else if(e.key === 'Escape'){ e.preventDefault(); restaurar(); }
+  });
+  input.addEventListener('blur', guardar);
+  setTimeout(() => input.focus(), 50);
+}
+
+/* Elimina una cuota del historial y recalcula cuotasPagadas, saldo y estado de la deuda. */
+function eliminarCuotaHistorial(id){
+  const d = historialDeudaActual;
+  const rec = (gastos || []).find(r => r.id === id);
+  if(!rec || !d){ toast('Cuota no encontrada', 'error'); return; }
+  confirmDelete('🗑️ ¿Eliminar esta cuota del historial?\nEl saldo y las cuotas pagadas de la deuda se recalcularán automáticamente.', () => {
+    removeRecord(id).then(() => {
+      /* Quitar el registro del estado local para reflejar el cambio al instante. */
+      const gIdx = (gastos || []).findIndex(r => r.id === id);
+      if(gIdx > -1) gastos.splice(gIdx, 1);
+
+      const restantes = pagosExistentesDeuda(d.id).length;
+      const saldoNuevo = calcularSaldoRestante(d, restantes);
+      const cambios = {
+        cuotasPagadas: restantes,
+        saldoActual: saldoNuevo,
+        estado: saldoNuevo > 0 ? 'activa' : 'pagada'
+      };
+      const ultima = pagosExistentesDeuda(d.id)
+        .sort((a,b) => String(b.fecha || '').localeCompare(String(a.fecha || '')))[0];
+      if(ultima && ultima.fecha) cambios.mesUltimaCuota = String(ultima.fecha).slice(0, 7);
+      else { cambios.mesUltimaCuota = null; cambios.ultimaCuotaPagada = null; }
+
+      return updateDeudaRec(d.id, cambios).then(() => {
+        const idx = (deudas || []).findIndex(x => x.id === d.id);
+        if(idx > -1) deudas[idx] = Object.assign({}, deudas[idx], cambios);
+        toast('🗑️ Cuota eliminada. Saldo actualizado a ' + formatPYG(saldoNuevo) + '.', 'info');
+        vibrar(50);
+        renderAll();
+        renderHistorialDeuda();
+      });
+    }).catch(err => {
+      console.error('Error al eliminar cuota:', err);
+      toast('No se pudo eliminar la cuota', 'error');
+      vibrar(25);
+    });
+  }, () => {
+    renderHistorialDeuda();
+  });
+}
 
 /* ------------------ SINCRONIZAR / REPARAR CUOTAS PAGADAS ------------------ */
 async function sincronizarCuotasDeuda(d){
