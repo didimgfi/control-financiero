@@ -4695,10 +4695,42 @@ function generarCsvCompleto(){
   (aportes || []).forEach(a => {
     filas.push([a.fecha || '', 'Ahorro', a.descripcion || '', a.categoria || 'Ahorro', Number(a.monto) || 0, a.metodoPago || 'Ahorro', '', '', a.comentarios || '']);
   });
-  if(!filas.length) return null;
-  filas.sort((a,b) => String(b[0]).localeCompare(String(a[0])));
+
+  /* Sección de deudas: detalle completo calculado (capital, total restante, intereses). */
+  const deudaFilas = (deudas || []).map(d => {
+    const ini = Number(d.saldoInicial) || 0;
+    const act = Number(d.saldoActual) || 0;
+    const tot = Number(d.cuotasTotales) || 0;
+    const pag = Number(d.cuotasPagadas) || 0;
+    const cuota = Number(d.cuotaMensual) || 0;
+    const totalPrestamo = tot * cuota;
+    const totalRestante = Math.max(0, (tot - pag) * cuota);
+    const capitalRestante = Math.max(0, act);
+    const interesesTotales = Math.max(0, totalPrestamo - ini);
+    const est = d.estado === 'pagada' ? 'Pagada' : (d.estado === 'refinanciada' ? 'Refinanciada' : 'Activa');
+    return [
+      d.nombre || '', d.entidad || '', est,
+      ini, cuota, tot, pag,
+      capitalRestante, totalRestante, totalPrestamo, interesesTotales,
+      pagosExistentesDeuda(d.id).length,
+      formatTasaDeuda(d),
+      d.diaVencimiento || '', d.fechaInicio || ''
+    ];
+  });
+
+  if(!filas.length && !deudaFilas.length) return null;
+  if(filas.length) filas.sort((a,b) => String(b[0]).localeCompare(String(a[0])));
   const encabezados = ['Fecha','Tipo','Descripción','Persona/Categoría','Monto','Método de pago','Tipo Gasto','Cuotas','Comentarios'];
-  return '\uFEFF' + [encabezados].concat(filas).map(f => f.map(csvField).join(';')).join('\n');
+  let csv = '\uFEFF' + [encabezados].concat(filas).map(f => f.map(csvField).join(';')).join('\n');
+  if(deudaFilas.length){
+    const encDeuda = [
+      'Deuda','Entidad','Estado','Saldo inicial','Cuota mensual','Cuotas totales','Cuotas pagadas',
+      'Capital restante','Total restante a pagar (con intereses)','Total préstamo con intereses','Intereses totales',
+      'Pagos registrados en historial','Tasa','Día de vencimiento','Fecha inicio'
+    ];
+    csv += '\n' + encDeuda.map(csvField).join(';') + '\n' + deudaFilas.map(f => f.map(csvField).join(';')).join('\n');
+  }
+  return csv;
 }
 
 /* Copia texto al portapapeles usando Clipboard API con fallback execCommand */
