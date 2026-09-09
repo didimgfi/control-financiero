@@ -2782,16 +2782,19 @@ function editarFechaEnTabla(tipo, id, td){
   const guardar = () => {
     if(done) return;
     const nueva = input.value || '';
-    if(nueva === fechaActual || !/^\d{4}-\d{2}-\d{2}$/.test(nueva)){
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(nueva) || nueva === fechaActual){
       restaurar();
       return;
     }
     done = true;
     input.disabled = true;
     updateRecord(id, { fecha: nueva }).then(() => {
+      /* Mantener la fila en su posición: solo se actualiza esta celda.
+         El orden real se ajustará en la próxima renderización (snapshot/otras acciones). */
+      rec.fecha = nueva;
       toast('📅 Fecha actualizada', 'success');
       vibrar(40);
-      if(tipo === 'ingreso') renderIngresos(); else renderGastos();
+      td.innerHTML = fmtFecha(nueva);
     }).catch(err => {
       done = false;
       input.disabled = false;
@@ -2805,7 +2808,8 @@ function editarFechaEnTabla(tipo, id, td){
     if(e.key === 'Enter'){ e.preventDefault(); guardar(); }
     else if(e.key === 'Escape'){ e.preventDefault(); restaurar(); }
   });
-  input.addEventListener('blur', guardar);
+  /* Clic fuera del campo cancela y restaura el texto original. */
+  input.addEventListener('blur', restaurar);
   setTimeout(() => input.focus(), 50);
 }
 
