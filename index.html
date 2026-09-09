@@ -133,6 +133,13 @@ textarea{resize:vertical;min-height:88px}
 .btn-edit{background:#E0E7FF;color:#3730A3;border:none;border-radius:10px;min-height:48px;min-width:48px;padding:6px 12px;cursor:pointer;font-size:1rem;transition:.15s ease;display:inline-flex;align-items:center;justify-content:center}
 .btn-edit:hover{background:#C7D2FE}
 .btn-edit:active{transform:scale(.94)}
+.btn-date{background:#DBEAFE;color:#1D4ED8;border:none;border-radius:10px;min-height:48px;min-width:48px;padding:6px 12px;cursor:pointer;font-size:1rem;transition:.15s ease;display:inline-flex;align-items:center;justify-content:center}
+.btn-date:hover{background:#BFDBFE}
+.btn-date:active{transform:scale(.94)}
+html.dark .btn-date{background:#0f3460;color:#93C5FD}
+html.dark .btn-date:hover{background:var(--borde)}
+.fecha-inline-input{font-family:inherit;font-size:.95rem;font-weight:600;color:var(--texto,#1e293b);background:var(--card,#fff);border:2px solid #0284C7;border-radius:8px;padding:6px 8px;max-width:190px}
+html.dark .fecha-inline-input{background:#1a1a2e;color:#E2E8F0}
 .row-actions{display:flex;gap:8px}
 .form-actions{display:flex;gap:10px;flex-wrap:wrap}
 .form-actions .btn{flex:1}
@@ -825,7 +832,7 @@ html.dark .tipo-total.unico b{color:#E2E8F0}
   #view-ingresos tbody td:nth-child(3),#view-ingresos tbody td:nth-child(4),#view-gastos tbody td:nth-child(3),#view-gastos tbody td:nth-child(4){order:4;flex:1 1 calc(50% - 5px)}
   #view-ingresos tbody td:nth-child(6),#view-gastos tbody td:nth-child(9){order:8;flex:1 1 100%;justify-content:center;padding-top:10px;margin-top:8px;border-top:1px dashed var(--borde)}
   #view-ingresos tbody td:nth-child(6) .row-actions,#view-gastos tbody td:nth-child(9) .row-actions{width:100%}
-  #view-ingresos tbody td:nth-child(6) .btn-del,#view-ingresos tbody td:nth-child(6) .btn-edit,#view-gastos tbody td:nth-child(9) .btn-del,#view-gastos tbody td:nth-child(9) .btn-edit{flex:1}
+  #view-ingresos tbody td:nth-child(6) .btn-del,#view-ingresos tbody td:nth-child(6) .btn-edit,#view-ingresos tbody td:nth-child(6) .btn-date,#view-gastos tbody td:nth-child(9) .btn-del,#view-gastos tbody td:nth-child(9) .btn-edit,#view-gastos tbody td:nth-child(9) .btn-date{flex:1}
   #view-gastos tbody td:nth-child(6){order:5;flex:1 1 100%}
   #view-gastos tbody td:nth-child(7){order:6;flex:1 1 50%}
   #view-gastos tbody td:nth-child(8){order:7;flex:1 1 100%}
@@ -2518,6 +2525,7 @@ function renderIngresos(){
         <td data-label="Categoría">${catBadge(i.categoria)}</td>
         <td data-label="Monto" class="monto ing">${formatPYG(i.monto)}</td>
         <td data-label="" class="row-action"><span class="row-actions">
+          <button class="btn-date btn-date-ing" data-id="${i.id}" title="Editar fecha">📅</button>
           <button class="btn-edit btn-edit-ing" data-id="${i.id}" title="Editar">✏️</button>
           <button class="btn-del btn-del-ing" data-id="${i.id}" title="Eliminar">🗑️</button>
         </span></td>
@@ -2532,6 +2540,13 @@ function renderIngresos(){
 }
 
 document.getElementById('ingresosTbody').addEventListener('click', e => {
+  const fechaBtn = e.target.closest('.btn-date-ing');
+  if(fechaBtn){
+    const tr = fechaBtn.closest('tr');
+    const td = tr ? tr.querySelector('.row-date') : null;
+    if(td) editarFechaEnTabla('ingreso', fechaBtn.dataset.id, td);
+    return;
+  }
   const edBtn = e.target.closest('.btn-edit-ing');
   if(edBtn){
     const rec = ingresos.find(i => i.id === edBtn.dataset.id) || (listaIngresos || []).find(i => i.id === edBtn.dataset.id);
@@ -2694,6 +2709,7 @@ function renderGastos(){
         <td data-label="Método de pago">${metodoTag(g.metodoPago)}</td>
         <td data-label="Comentarios" class="row-com">${esc(g.comentarios || '—')}</td>
         <td data-label="" class="row-action"><span class="row-actions">
+          <button class="btn-date btn-date-gas" data-id="${g.id}" title="Editar fecha">📅</button>
           <button class="btn-edit btn-edit-gas" data-id="${g.id}" title="Editar">✏️</button>
           <button class="btn-del btn-del-gas" data-id="${g.id}" title="Eliminar">🗑️</button>
         </span></td>
@@ -2709,6 +2725,13 @@ function renderGastos(){
 }
 
 document.getElementById('gastosTbody').addEventListener('click', e => {
+  const fechaBtn = e.target.closest('.btn-date-gas');
+  if(fechaBtn){
+    const tr = fechaBtn.closest('tr');
+    const td = tr ? tr.querySelector('.row-date') : null;
+    if(td) editarFechaEnTabla('gasto', fechaBtn.dataset.id, td);
+    return;
+  }
   const edBtn = e.target.closest('.btn-edit-gas');
   if(edBtn){
     const rec = gastos.find(g => g.id === edBtn.dataset.id) || (listaGastos || []).find(g => g.id === edBtn.dataset.id);
@@ -2729,6 +2752,62 @@ document.getElementById('gastosTbody').addEventListener('click', e => {
     renderGastos();
   });
 });
+
+/* ------------------ EDICIÓN RÁPIDA DE FECHA EN LA TABLA ------------------ */
+/* Convierte la celda de fecha en un input date y guarda en Firestore (updateRecord).
+   Enter o blur guardan; Escape cancela. */
+function editarFechaEnTabla(tipo, id, td){
+  const base = tipo === 'ingreso' ? (listaIngresos || filterIngresos()) : (listaGastos || filterGastos());
+  const rec = base.find(r => r.id === id);
+  if(!rec || !td) return;
+  const fechaActual = String(rec.fecha || '').slice(0, 10) || '';
+  const originalHtml = td.innerHTML;
+
+  const input = document.createElement('input');
+  input.type = 'date';
+  input.value = fechaActual;
+  input.className = 'fecha-inline-input';
+  input.setAttribute('aria-label', 'Editar fecha');
+  td.textContent = '';
+  td.appendChild(input);
+
+  let done = false;
+
+  const restaurar = () => {
+    if(done) return;
+    done = true;
+    td.innerHTML = originalHtml;
+  };
+
+  const guardar = () => {
+    if(done) return;
+    const nueva = input.value || '';
+    if(nueva === fechaActual || !/^\d{4}-\d{2}-\d{2}$/.test(nueva)){
+      restaurar();
+      return;
+    }
+    done = true;
+    input.disabled = true;
+    updateRecord(id, { fecha: nueva }).then(() => {
+      toast('📅 Fecha actualizada', 'success');
+      vibrar(40);
+      if(tipo === 'ingreso') renderIngresos(); else renderGastos();
+    }).catch(err => {
+      done = false;
+      input.disabled = false;
+      console.error('Error al actualizar fecha:', err);
+      toast('No se pudo actualizar la fecha', 'error');
+      td.innerHTML = originalHtml;
+    });
+  };
+
+  input.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){ e.preventDefault(); guardar(); }
+    else if(e.key === 'Escape'){ e.preventDefault(); restaurar(); }
+  });
+  input.addEventListener('blur', guardar);
+  setTimeout(() => input.focus(), 50);
+}
 
 /* ------------------ DEUDAS: CONTROL DE PRÉSTAMOS (colección "deudas") ------------------ */
 
