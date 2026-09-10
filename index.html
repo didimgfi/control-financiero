@@ -3507,6 +3507,55 @@ function crearRegistrosMasivosDeuda(d, n, fIni, montoCuota){
 
 let historialDeudaActual = null;
 
+/* Meses únicos (sin duplicados) en los que hay pagos registrados para la deuda. */
+function mesesPagoUnicosDeuda(deudaId){
+  const vistos = {};
+  const meses = [];
+  (gastos || []).forEach(r => {
+    if(r.tipo !== 'gasto' || r.esDeuda !== true || r.deudaId !== deudaId) return;
+    const mk = String(r.fecha || '').slice(0, 7);
+    if(mk.length === 7 && !vistos[mk]){ vistos[mk] = true; meses.push(mk); }
+  });
+  return meses;
+}
+
+/* Último mes con pago (la máxima fecha única del historial), o null si no hay pagos. */
+function maxMesPagoDeuda(deudaId){
+  const meses = mesesPagoUnicosDeuda(deudaId);
+  if(!meses.length) return null;
+  meses.sort();
+  return meses[meses.length - 1];
+}
+
+/* Próxima cuota a pagar, calculada SIEMPRE desde el historial real de pagos:
+   - Con pagos: último mes pagado + 1 mes (pagos en desorden no afectan, se toma el máximo).
+   - Sin pagos: mes de la fecha de inicio + 1 mes.
+   - Si supera la cuota final programada del préstamo (cuotasTotales sobre fechaInicio),
+     se ignora ese cálculo regular y se marca la deuda como "Completada".
+   Devuelve { key, label, completada }. */
+function proximaCuotaDeuda(d){
+  const meses = mesesPagoUnicosDeuda(d.id);
+  let refKey;
+  if(meses.length){
+    meses.sort();
+    refKey = meses[meses.length - 1];
+  } else {
+    refKey = mesDeCuota(d.fechaInicio, 0);
+  }
+  const [py, pm] = String(refKey).split('-').map(Number);
+  const sig = new Date(py, pm, 1); // pm va de 1 a 12 ⇒ el siguiente mes directo (el 12 salta al año siguiente)
+  const nextKey = sig.getFullYear() + '-' + String(sig.getMonth() + 1).padStart(2, '0');
+
+  const tot = Number(d.cuotasTotales) || 0;
+  const pagadas = Number(d.cuotasPagadas) || 0;
+  const finalKey = (d.fechaInicio && tot > 0) ? mesDeCuota(d.fechaInicio, Math.max(0, tot - 1)) : null;
+  const completada = (tot > 0 && pagadas >= tot) || (finalKey && nextKey > finalKey);
+  if(completada){
+    return { key: finalKey || nextKey, label: '✔ Completada', completada: true };
+  }
+  return { key: nextKey, label: MESES[sig.getMonth()] + ' ' + sig.getFullYear(), completada: false };
+}
+
 function abrirHistorialDeuda(d){
   if(!d){ toast('Deuda no encontrada', 'error'); return; }
   /* Tomar la versión más reciente del estado local para reflejar cuotasPagadas de Firestore. */
@@ -3543,25 +3592,14 @@ function renderHistorialDeuda(){
 
   /* Resumen superior */
   const resumen = document.getElementById('historialResumen');
-  const proxMes = (function(){
-    const hoy = new Date();
-    if(cuotasPagadas > 0){
-      const mkDeuda = String(d.mesUltimaCuota || '');
-      if(mkDeuda && mkDeuda.length >= 7){
-        const [my, mmn] = mkDeuda.split('-').map(Number);
-        const sig = new Date(my, mmn, 1); // mes siguiente
-        sig.setMonth(sig.getMonth() + 1);
-        return (MESES[sig.getMonth()] || '') + ' ' + sig.getFullYear();
-      }
-    }
-    const prox = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
-    return (MESES[prox.getMonth()] || '') + ' ' + prox.getFullYear();
-  })();
+  /* Próxima cuota calculada SIEMPRE desde el historial real de pagos
+     (último mes pagado + 1), nunca desde el campo mesUltimaCuota que puede quedar viejo. */
+  const proxMes = proximaCuotaDeuda(d);
 
   resumen.innerHTML =
     '<div class="hr-line"><span>💰 Total pagado:</span><b>' + formatPYG(totalPagado) + '</b></div>' +
     '<div class="hr-line"><span>🧮 Cuotas pagadas:</span><b>' + cuotasPagadas + ' de ' + (cuotasTotales || '—') + '</b></div>' +
-    '<div class="hr-line"><span>📅 Próxima cuota:</span><b>' + proxMes + '</b></div>';
+    '<div class="hr-line"><span>📅 Próxima cuota:</span><b>' + proxMes.label + '</b></div>';
 
   /* Pagos reales desde "registros" (deudaId + esDeuda + tipo gasto).
      Se muestra UNA fila por registro (sin deduplicar por mes) para poder
@@ -3663,6 +3701,10 @@ function editarFechaCuotaHistorial(id, td){
     done = true;
     input.disabled = true;
     updateRecord(id, { fecha: nueva }).then(() => {
+      /* Reflejar el cambio al instante y mantener mesUltimaCuota sincronizada en Firestore. */
+      rec.fecha = nueva;
+      const mf = maxMesPagoDeuda(historialDeudaActual ? historialDeudaActual.id : rec.deudaId);
+      if(mf) updateDeudaRec(rec.deudaId, { mesUltimaCuota: mf });
       toast('📅 Fecha de la cuota actualizada', 'success');
       vibrar(40);
       renderHistorialDeuda();
